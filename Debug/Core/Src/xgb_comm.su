@@ -1,0 +1,3 @@
+xgb_comm.c:16:16:xgb_send_frame	16	static
+xgb_comm.c:22:15:xgb_prepare_read_frame	152	static
+xgb_comm.c:76:9:xgb_read_data	152	static
