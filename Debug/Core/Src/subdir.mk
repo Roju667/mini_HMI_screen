@@ -5,9 +5,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/dma.c \
 ../Core/Src/gpio.c \
-../Core/Src/iwdg.c \
 ../Core/Src/main.c \
+../Core/Src/ringbuffer.c \
 ../Core/Src/spi.c \
 ../Core/Src/stm32f1xx_hal_msp.c \
 ../Core/Src/stm32f1xx_it.c \
@@ -18,9 +19,10 @@ C_SRCS += \
 ../Core/Src/xgb_comm.c 
 
 OBJS += \
+./Core/Src/dma.o \
 ./Core/Src/gpio.o \
-./Core/Src/iwdg.o \
 ./Core/Src/main.o \
+./Core/Src/ringbuffer.o \
 ./Core/Src/spi.o \
 ./Core/Src/stm32f1xx_hal_msp.o \
 ./Core/Src/stm32f1xx_it.o \
@@ -31,9 +33,10 @@ OBJS += \
 ./Core/Src/xgb_comm.o 
 
 C_DEPS += \
+./Core/Src/dma.d \
 ./Core/Src/gpio.d \
-./Core/Src/iwdg.d \
 ./Core/Src/main.d \
+./Core/Src/ringbuffer.d \
 ./Core/Src/spi.d \
 ./Core/Src/stm32f1xx_hal_msp.d \
 ./Core/Src/stm32f1xx_it.d \
