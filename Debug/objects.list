@@ -1,5 +1,8 @@
+"./Core/Src/GFX_COLOR.o"
+"./Core/Src/ILI9341.o"
 "./Core/Src/dma.o"
 "./Core/Src/gpio.o"
+"./Core/Src/hmi.o"
 "./Core/Src/main.o"
 "./Core/Src/ringbuffer.o"
 "./Core/Src/spi.o"

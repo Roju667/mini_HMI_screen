@@ -5,8 +5,11 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/GFX_COLOR.c \
+../Core/Src/ILI9341.c \
 ../Core/Src/dma.c \
 ../Core/Src/gpio.c \
+../Core/Src/hmi.c \
 ../Core/Src/main.c \
 ../Core/Src/ringbuffer.c \
 ../Core/Src/spi.c \
@@ -19,8 +22,11 @@ C_SRCS += \
 ../Core/Src/xgb_comm.c 
 
 OBJS += \
+./Core/Src/GFX_COLOR.o \
+./Core/Src/ILI9341.o \
 ./Core/Src/dma.o \
 ./Core/Src/gpio.o \
+./Core/Src/hmi.o \
 ./Core/Src/main.o \
 ./Core/Src/ringbuffer.o \
 ./Core/Src/spi.o \
@@ -33,8 +39,11 @@ OBJS += \
 ./Core/Src/xgb_comm.o 
 
 C_DEPS += \
+./Core/Src/GFX_COLOR.d \
+./Core/Src/ILI9341.d \
 ./Core/Src/dma.d \
 ./Core/Src/gpio.d \
+./Core/Src/hmi.d \
 ./Core/Src/main.d \
 ./Core/Src/ringbuffer.d \
 ./Core/Src/spi.d \

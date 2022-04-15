@@ -1,0 +1,7 @@
+hmi.c:22:13:hmi_draw_main_screen	24	static
+hmi.c:38:13:hmi_read_eeprom	4	static
+hmi.c:40:13:hmi_init_tft	8	static
+hmi.c:46:13:hmi_active_screen	24	static
+hmi.c:56:6:hmi_read_tile_function	24	static
+hmi.c:73:6:hmi_main	8	static
+hmi.c:109:6:HAL_UARTEx_RxEventCallback	16	static

@@ -14,6 +14,8 @@
 #define MAX_FRAME_SIZE 256
 #define MAX_DATA_SIZE 16
 
+#define STATION_NUMBER 1
+
 /*
  * FRAME FORMAT:
  *
@@ -44,20 +46,6 @@
 #define XGB_CC_EOT 0x04U  // EOT
 #define XGB_CC_ETX 0x03U  // ETX
 
-/*
- * COMMANDS
- * Read write command is a combination of Read/Write hex code with
- * Individual/Continious hexcode
- *
- */
-#define XBG_CMD_READ 0x52U             // R
-#define XBG_CMD_WRITE 0x57U            // W
-#define XBG_CMD_INDIVIDUAL_RW 0x5353U  // SS
-#define XBG_CMD_CONTINUOUS_RW 0x5342U  // SB
-
-#define XBG_CMD_REGISTER_MONITORING 0x58U  // X
-#define XBG_CMD_EXECUTE_MONITORING 0x59U   // Y
-
 typedef enum xgb_data_size_marking {
   XGB_DATA_SIZE_BIT = 'X',
   XGB_DATA_SIZE_BYTE = 'B',
@@ -81,18 +69,73 @@ typedef enum xgb_device_type {
   XGB_DEV_TYPE_R = 'R'
 } xgb_device_type;
 
-typedef struct command_frame {
-  uint8_t station_no;  // defined in PLC station number
-  uint8_t no_of_blocks;	// no of data blocks to read/send
-  xgb_data_size_marking data_size;	// what data size we want to read (amount of bytes we read is no_of_blocks * data_size)
-  xgb_device_type device_type;	// data area we want to read
-  char *p_device_address;	// device address string - maybe can be done in uint16???
-  uint8_t *p_data_buffer;	// adress to data buffer
-} command_frame;
+enum xgb_comm_error
+{
+	XGB_OK = 0,
+	XGB_ERR_TRANSMIT_TIMEOUT = -1,
+	XGB_ERR_EOT_MISSING = -2
+
+};
+
+/*
+ * Parameters required for individual read command frame
+ */
+struct data_ind_read_frame {
+  uint8_t station_number;
+  uint8_t no_of_blocks;
+  xgb_data_size_marking data_size;
+  xgb_device_type device_type;
+  char *p_device_address;
+};
+
+/*
+ * Parameters required for individual write command frame
+ */
+struct data_ind_write_frame {
+  uint8_t station_number;
+  uint8_t no_of_blocks;
+  xgb_data_size_marking data_size;
+  xgb_device_type device_type;
+  char *p_device_address;
+  uint8_t *p_data_buffer;
+};
+
+/*
+ * Parameters required for continuous read command frame
+ */
+struct data_cont_read_frame {
+  uint8_t station_number;
+  xgb_data_size_marking data_size;
+  xgb_device_type device_type;
+  uint8_t no_of_data;
+  char *p_device_address;
+};
+
+/*
+ * Parameters required for continuous write command frame
+ */
+struct data_cont_write_frame {
+  uint8_t station_number;
+  xgb_data_size_marking data_size;
+  xgb_device_type device_type;
+  uint8_t no_of_data;
+  char *p_device_address;
+  uint8_t *p_data_buffer;
+};
+
+/*
+ * To not miss any parameters during command send, structs are created
+ */
+typedef union cmd_frame_data {
+	struct data_ind_read_frame ind_read;
+	struct data_ind_write_frame ind_write;
+	struct data_cont_read_frame cont_read;
+	struct data_cont_write_frame cont_write;
+} cmd_frame_data;
 
 __attribute__((packed)) struct respond_ack_frame {
   uint8_t header_ack;
-  uint8_t station_no[2];
+  uint8_t station_number[2];
   uint8_t command;
   uint8_t command_type[2];
   uint8_t no_blocks[2];
@@ -103,16 +146,16 @@ __attribute__((packed)) struct respond_ack_frame {
 
 __attribute__((packed)) struct respond_nak_frame {
   uint8_t header_nak;
-  uint8_t station_no[2];
+  uint8_t station_number[2];
   uint8_t command;
   uint8_t command_type[2];
   uint8_t no_blocks[2];
   uint8_t error_code[4];
 };
 
-__attribute__((packed)) struct request_ind_read_frame {
+__attribute__((packed)) struct cmd_ind_read_frame {
   uint8_t header_enq;
-  uint8_t station_no[2];
+  uint8_t station_number[2];
   uint8_t command;
   uint8_t command_type[2];
   uint8_t no_blocks[2];
@@ -121,9 +164,9 @@ __attribute__((packed)) struct request_ind_read_frame {
   uint8_t tail_eot;
 };
 
-__attribute__((packed)) struct request_ind_write_frame {
+__attribute__((packed)) struct cmd_ind_write_frame {
   uint8_t header_enq;
-  uint8_t station_no[2];
+  uint8_t station_number[2];
   uint8_t command;
   uint8_t command_type[2];
   uint8_t no_blocks[2];
@@ -133,9 +176,9 @@ __attribute__((packed)) struct request_ind_write_frame {
   uint8_t tail_eot;
 };
 
-__attribute__((packed)) struct request_cont_read_frame {
+__attribute__((packed)) struct cmd_cont_read_frame {
   uint8_t header_enq;
-  uint8_t station_no[2];
+  uint8_t station_number[2];
   uint8_t command;
   uint8_t command_type[2];
   uint8_t device_lenght[2];
@@ -144,13 +187,29 @@ __attribute__((packed)) struct request_cont_read_frame {
   uint8_t tail_eot;
 };
 
+__attribute__((packed)) struct cmd_cont_write_frame {
+  uint8_t header_enq;
+  uint8_t station_number[2];
+  uint8_t command;
+  uint8_t command_type[2];
+  uint8_t device_lenght[2];
+  uint8_t device_name[16];
+  uint8_t no_data[2];
+  uint8_t data[229];
+  uint8_t tail_eot;
+};
+
 static_assert(sizeof(struct respond_ack_frame) <= MAX_FRAME_SIZE,
               "frame struct size exceeded");
 static_assert(sizeof(struct respond_nak_frame) <= MAX_FRAME_SIZE,
               "frame struct size exceeded");
-static_assert(sizeof(struct transmit_ind_read_frame) <= MAX_FRAME_SIZE,
+static_assert(sizeof(struct cmd_ind_read_frame) <= MAX_FRAME_SIZE,
               "frame struct size exceeded");
-static_assert(sizeof(struct transmit_ind_write_frame) <= MAX_FRAME_SIZE,
+static_assert(sizeof(struct cmd_ind_write_frame) <= MAX_FRAME_SIZE,
+              "frame struct size exceeded");
+static_assert(sizeof(struct cmd_cont_read_frame) <= MAX_FRAME_SIZE,
+              "frame struct size exceeded");
+static_assert(sizeof(struct cmd_cont_write_frame) <= MAX_FRAME_SIZE,
               "frame struct size exceeded");
 
 // converts marking to amount of bytes
@@ -181,12 +240,20 @@ typedef union frame {
   uint8_t frame_bytes[MAX_FRAME_SIZE];
   struct respond_ack_frame ack_frame;
   struct respond_nak_frame nak_frame;
-  struct transmit_ind_read_frame ind_read_frame;
-  struct transmit_ind_write_frame ind_write_frame;
-  struct request_cont_read_frame cont_read_frame;
+  struct cmd_ind_read_frame ind_read_frame;
+  struct cmd_ind_write_frame ind_write_frame;
+  struct cmd_cont_read_frame cont_read_frame;
+  struct cmd_cont_write_frame cont_write_frame;
 } u_frame;
 
-uint8_t xgb_send_individual_read_cmd(const command_frame frame_data);
-uint8_t xgb_send_inidividual_write_cmd(const command_frame frame_data);
+uint8_t xgb_send_individual_read_cmd(const cmd_frame_data frame_data);
+uint8_t xgb_send_inidividual_write_cmd(const cmd_frame_data frame_data);
+uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data frame_data);
+uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data frame_data);
+
+
+
+uint8_t xgb_read_single_device(const xgb_device_type type,const xgb_data_size_marking size_mark,const char* address);
+
 
 #endif /* INC_XGB_COMM_H_ */
