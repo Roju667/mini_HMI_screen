@@ -19,6 +19,9 @@ volatile uint8_t frame_returned;
 hmi_screen screen;
 uint8_t p_data[MAX_FRAME_SIZE];
 
+
+// main screen functions
+
 static void hmi_draw_main_screen(void) {
   GFX_DrawRectangle(3, 1, HMI_TITLE_TILE_WIDTH, HMI_TITLE_TILE_HEIGHT,
                     HMI_TILE_COLOR);
@@ -29,9 +32,6 @@ static void hmi_draw_main_screen(void) {
                         HMI_TILE_HEIGHT, HMI_TILE_COLOR);
     }
   }
-
-  GFX_SetFont(font_8x5);
-  state = ACTIVE_SCREEN;
   return;
 }
 
@@ -40,7 +40,9 @@ static void hmi_read_eeprom(void) { state = INIT_TFT; }
 static void hmi_init_tft(void) {
   ILI9341_Init(&hspi1);
   ILI9341_ClearDisplay(ILI9341_DARKCYAN);
+  GFX_SetFont(font_8x5);
   hmi_draw_main_screen();
+  state = ACTIVE_SCREEN;
 }
 
 static void hmi_active_screen(void) {
