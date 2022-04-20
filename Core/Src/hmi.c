@@ -28,8 +28,8 @@ volatile bool frame_returned;
 hmi_screen screen;
 uint8_t p_data[MAX_FRAME_SIZE];
 
-// main screen functions
-
+// draw functions
+// draw main menu at the warm up
 static void hmi_draw_main_screen(void) {
   GFX_DrawRectangle(3, 1, HMI_TITLE_TILE_WIDTH, HMI_TITLE_TILE_HEIGHT,
                     HMI_TILE_COLOR);
@@ -43,6 +43,7 @@ static void hmi_draw_main_screen(void) {
   return;
 }
 
+// draw new tile with string value
 static void hmi_draw_tile(const uint8_t tile_number, const char *text) {
   GFX_DrawFillRectangle(3, (tile_number * 21) + 30, HMI_BUTTON_WIDTH - 10, 8,
                         HMI_BACKGROUND_COLOR);
@@ -52,6 +53,12 @@ static void hmi_draw_tile(const uint8_t tile_number, const char *text) {
   return;
 }
 
+// draw active tile where the cursor is
+static void hmi_draw_active_tile(uint8_t active_tile_number) {
+  GFX_DrawRectangle((j * 159) + 3, (i * 41) + 29, HMI_BUTTON_WIDTH,
+                    HMI_TILE_HEIGHT, HMI_TILE_COLOR);
+}
+
 static void hmi_read_eeprom(void) { state = INIT_TFT; }
 
 // init tft and draw main screen
@@ -59,7 +66,6 @@ static void hmi_init_tft(void) {
   ILI9341_Init(&hspi1);
   ILI9341_ClearDisplay(HMI_BACKGROUND_COLOR);
   GFX_SetFont(font_8x5);
-
   hmi_draw_main_screen();
   state = ACTIVE_SCREEN;
   return;
@@ -67,10 +73,13 @@ static void hmi_init_tft(void) {
 
 static void hmi_active_screen(void) {
   while (1) {
+    // do every tile callback
     for (uint8_t i = 0; i < 10; i++) {
       if (NULL != screen.buttons[i].callback) {
         screen.buttons[i].callback(&screen.buttons[i].data);
       }
+
+      // check if button was pressed
     }
   }
 }
