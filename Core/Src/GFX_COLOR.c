@@ -73,7 +73,7 @@ void GFX_DrawChar(int x, int y, char chr, ColorType color)
     }
 }
 
-void GFX_DrawString(int x, int y, char* str, ColorType color)
+void GFX_DrawString(int x, int y,const char* str, ColorType color)
 {
 	int x_tmp = x;
 

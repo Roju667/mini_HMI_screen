@@ -8,6 +8,8 @@
 #ifndef INC_ILI9341_H_
 #define INC_ILI9341_H_
 
+#include "main.h"
+
 // Pins
 #define ILI9341_USE_HW_RESET 	1
 #define ILI9341_USE_CS			0

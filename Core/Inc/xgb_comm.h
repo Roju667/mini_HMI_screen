@@ -69,11 +69,10 @@ typedef enum xgb_device_type {
   XGB_DEV_TYPE_R = 'R'
 } xgb_device_type;
 
-enum xgb_comm_error
-{
-	XGB_OK = 0,
-	XGB_ERR_TRANSMIT_TIMEOUT = -1,
-	XGB_ERR_EOT_MISSING = -2
+enum xgb_comm_error {
+  XGB_OK = 0,
+  XGB_ERR_TRANSMIT_TIMEOUT = -1,
+  XGB_ERR_EOT_MISSING = -2
 
 };
 
@@ -127,76 +126,85 @@ struct data_cont_write_frame {
  * To not miss any parameters during command send, structs are created
  */
 typedef union cmd_frame_data {
-	struct data_ind_read_frame ind_read;
-	struct data_ind_write_frame ind_write;
-	struct data_cont_read_frame cont_read;
-	struct data_cont_write_frame cont_write;
+  struct data_ind_read_frame ind_read;
+  struct data_ind_write_frame ind_write;
+  struct data_cont_read_frame cont_read;
+  struct data_cont_write_frame cont_write;
 } cmd_frame_data;
 
+typedef uint8_t station_number_t[2];
+typedef uint8_t command_t;
+typedef uint8_t command_type_t[2];
+typedef uint8_t no_blocks_t[2];
+typedef uint8_t device_lenght_t[2];
+typedef uint8_t no_data_t[2];
+typedef uint8_t device_name_t[16];
+typedef uint8_t header_tail_t;
+
 __attribute__((packed)) struct respond_ack_frame {
-  uint8_t header_ack;
-  uint8_t station_number[2];
-  uint8_t command;
-  uint8_t command_type[2];
-  uint8_t no_blocks[2];
-  uint8_t no_data[2];
+  header_tail_t header_ack;
+  station_number_t station_number;
+  command_t command;
+  command_type_t command_type;
+  no_blocks_t no_blocks;
+  no_data_t no_data;
   uint8_t data[245];
-  uint8_t tail_eot;
+  header_tail_t tail_eot;
 };
 
 __attribute__((packed)) struct respond_nak_frame {
-  uint8_t header_nak;
-  uint8_t station_number[2];
-  uint8_t command;
-  uint8_t command_type[2];
-  uint8_t no_blocks[2];
+  header_tail_t header_nak;
+  station_number_t station_number;
+  command_t command;
+  command_type_t command_type;
+  no_blocks_t no_blocks;
   uint8_t error_code[4];
 };
 
 __attribute__((packed)) struct cmd_ind_read_frame {
-  uint8_t header_enq;
-  uint8_t station_number[2];
-  uint8_t command;
-  uint8_t command_type[2];
-  uint8_t no_blocks[2];
-  uint8_t device_lenght[2];
-  uint8_t device_name[16];
-  uint8_t tail_eot;
+  header_tail_t header_enq;
+  station_number_t station_number;
+  command_t command;
+  command_type_t command_type;
+  no_blocks_t no_blocks;
+  device_lenght_t device_lenght;
+  device_name_t device_name;
+  header_tail_t tail_eot;
 };
 
 __attribute__((packed)) struct cmd_ind_write_frame {
-  uint8_t header_enq;
-  uint8_t station_number[2];
-  uint8_t command;
-  uint8_t command_type[2];
-  uint8_t no_blocks[2];
-  uint8_t device_lenght[2];
-  uint8_t device_name[16];
+  header_tail_t header_enq;
+  station_number_t station_number;
+  command_t command;
+  command_type_t command_type;
+  no_blocks_t no_blocks;
+  device_lenght_t device_lenght;
+  device_name_t device_name;
   uint8_t data[229];
-  uint8_t tail_eot;
+  header_tail_t tail_eot;
 };
 
 __attribute__((packed)) struct cmd_cont_read_frame {
-  uint8_t header_enq;
-  uint8_t station_number[2];
-  uint8_t command;
-  uint8_t command_type[2];
-  uint8_t device_lenght[2];
-  uint8_t device_name[16];
-  uint8_t no_data[2];
-  uint8_t tail_eot;
+  header_tail_t header_enq;
+  station_number_t station_number;
+  command_t command;
+  command_type_t command_type;
+  device_lenght_t device_lenght;
+  device_name_t device_name;
+  no_data_t no_data;
+  header_tail_t tail_eot;
 };
 
 __attribute__((packed)) struct cmd_cont_write_frame {
-  uint8_t header_enq;
-  uint8_t station_number[2];
-  uint8_t command;
-  uint8_t command_type[2];
-  uint8_t device_lenght[2];
-  uint8_t device_name[16];
-  uint8_t no_data[2];
+  header_tail_t header_enq;
+  station_number_t station_number;
+  command_t command;
+  command_type_t command_type;
+  device_lenght_t device_lenght;
+  device_name_t device_name;
+  no_data_t no_data;
   uint8_t data[229];
-  uint8_t tail_eot;
+  header_tail_t tail_eot;
 };
 
 static_assert(sizeof(struct respond_ack_frame) <= MAX_FRAME_SIZE,
@@ -246,14 +254,13 @@ typedef union frame {
   struct cmd_cont_write_frame cont_write_frame;
 } u_frame;
 
-uint8_t xgb_send_individual_read_cmd(const cmd_frame_data frame_data);
-uint8_t xgb_send_inidividual_write_cmd(const cmd_frame_data frame_data);
-uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data frame_data);
-uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data frame_data);
+uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data);
+uint8_t xgb_send_inidividual_write_cmd(const cmd_frame_data *p_frame_data);
+uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data);
+uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data);
 
-
-
-uint8_t xgb_read_single_device(const xgb_device_type type,const xgb_data_size_marking size_mark,const char* address);
-
+uint8_t xgb_read_single_device(const xgb_device_type type,
+                               const xgb_data_size_marking size_mark,
+                               const char *address);
 
 #endif /* INC_XGB_COMM_H_ */

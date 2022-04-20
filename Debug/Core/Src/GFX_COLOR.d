@@ -23,7 +23,7 @@ Core/Src/GFX_COLOR.o: ../Core/Src/GFX_COLOR.c ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/ILI9341.h ../Core/Inc/GFX_COLOR.h
+ ../Core/Inc/ILI9341.h ../Core/Inc/main.h ../Core/Inc/GFX_COLOR.h
 
 ../Core/Inc/main.h:
 
@@ -76,5 +76,7 @@ Core/Src/GFX_COLOR.o: ../Core/Src/GFX_COLOR.c ../Core/Inc/main.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 
 ../Core/Inc/ILI9341.h:
+
+../Core/Inc/main.h:
 
 ../Core/Inc/GFX_COLOR.h:

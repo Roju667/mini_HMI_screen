@@ -4,21 +4,29 @@
  *  Created on: 15 kwi 2022
  *      Author: ROJEK
  */
+#include "hmi.h"
 
-
-#include "main.h"
 #include "GFX_COLOR.h"
 #include "ILI9341.h"
 #include "fonts.h"
-#include "hmi.h"
+#include "main.h"
+
+#define RETURN_FRAME_TIMEOUT 1000
+
+#define HMI_TITLE_TILE_WIDTH 314U
+#define HMI_TITLE_TILE_HEIGHT 27U
+#define HMI_BUTTON_WIDTH 155U
+#define HMI_TILE_HEIGHT 40U
+#define HMI_TILE_COLOR ILI9341_YELLOW
+#define HMI_BACKGROUND_COLOR ILI9341_DARKCYAN
+#define HMI_TEXT_COLOR ILI9341_YELLOW
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
 volatile hmi_state state;
-volatile uint8_t frame_returned;
+volatile bool frame_returned;
 hmi_screen screen;
 uint8_t p_data[MAX_FRAME_SIZE];
-
 
 // main screen functions
 
@@ -35,41 +43,64 @@ static void hmi_draw_main_screen(void) {
   return;
 }
 
+static void hmi_draw_tile(const uint8_t tile_number, const char *text) {
+  GFX_DrawFillRectangle(3, (tile_number * 21) + 30, HMI_BUTTON_WIDTH - 10, 8,
+                        HMI_BACKGROUND_COLOR);
+
+  GFX_DrawString(3, (tile_number * 21) + 30, text, HMI_TEXT_COLOR);
+
+  return;
+}
+
 static void hmi_read_eeprom(void) { state = INIT_TFT; }
 
+// init tft and draw main screen
 static void hmi_init_tft(void) {
   ILI9341_Init(&hspi1);
-  ILI9341_ClearDisplay(ILI9341_DARKCYAN);
+  ILI9341_ClearDisplay(HMI_BACKGROUND_COLOR);
   GFX_SetFont(font_8x5);
+
   hmi_draw_main_screen();
   state = ACTIVE_SCREEN;
+  return;
 }
 
 static void hmi_active_screen(void) {
   while (1) {
     for (uint8_t i = 0; i < 10; i++) {
-      if (screen.buttons[i].tile_function != NULL) {
-        screen.buttons[i].tile_function(screen.buttons[i].data);
+      if (NULL != screen.buttons[i].callback) {
+        screen.buttons[i].callback(&screen.buttons[i].data);
       }
     }
   }
 }
 
-void hmi_read_tile_function(const union tile_data data) {
-  frame_returned = 0;
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, p_data, MAX_FRAME_SIZE);
+static void hmi_read_tile_function(const union tile_data *p_data) {
+  // read on DMA
+  frame_returned = false;
+  bool timeout_error = false;
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)p_data, MAX_FRAME_SIZE);
 
-  xgb_read_single_device(data.read_tile.type, data.read_tile.size_mark,
-                         data.read_tile.address);
+  // send read command
+  xgb_read_single_device(p_data->read_tile.type, p_data->read_tile.size_mark,
+                         p_data->read_tile.address);
 
-  // wait
-  while (!frame_returned) {
+  // wait for return frame
+  uint32_t current_tick = HAL_GetTick();
+  while (false == frame_returned) {
+    if (HAL_GetTick() - current_tick > RETURN_FRAME_TIMEOUT) {
+      timeout_error = true;
+      break;
+    }
   }
 
-  GFX_DrawFillRectangle(3, data.read_tile.tile_number * 21 + 30, HMI_BUTTON_WIDTH - 10, 8, ILI9341_DARKCYAN);
+  if (true == timeout_error) {
+    hmi_draw_tile(p_data->read_tile.tile_number, (char *)p_data);
+  } else {
+    hmi_draw_tile(p_data->read_tile.tile_number, "TIMEOUT");
+  }
 
-  GFX_DrawString(3, data.read_tile.tile_number * 21 + 30, (char *)p_data,
-                 ILI9341_YELLOW);
+  return;
 }
 
 void hmi_main(void) {
@@ -91,7 +122,7 @@ void hmi_main(void) {
         screen.buttons[0].data.read_tile.size_mark = XGB_DATA_SIZE_BYTE;
         screen.buttons[0].data.read_tile.tile_number = 0;
         screen.buttons[0].data.read_tile.type = XGB_DEV_TYPE_P;
-        screen.buttons[0].tile_function = hmi_read_tile_function;
+        screen.buttons[0].callback = hmi_read_tile_function;
         hmi_active_screen();
         break;
       }
@@ -109,5 +140,5 @@ void hmi_main(void) {
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
-  frame_returned = 1;
+  frame_returned = true;
 }
