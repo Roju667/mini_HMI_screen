@@ -1,3 +1,4 @@
+"./Core/Src/5buttons.o"
 "./Core/Src/GFX_COLOR.o"
 "./Core/Src/ILI9341.o"
 "./Core/Src/dma.o"

@@ -5,6 +5,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/5buttons.c \
 ../Core/Src/GFX_COLOR.c \
 ../Core/Src/ILI9341.c \
 ../Core/Src/dma.c \
@@ -22,6 +23,7 @@ C_SRCS += \
 ../Core/Src/xgb_comm.c 
 
 OBJS += \
+./Core/Src/5buttons.o \
 ./Core/Src/GFX_COLOR.o \
 ./Core/Src/ILI9341.o \
 ./Core/Src/dma.o \
@@ -39,6 +41,7 @@ OBJS += \
 ./Core/Src/xgb_comm.o 
 
 C_DEPS += \
+./Core/Src/5buttons.d \
 ./Core/Src/GFX_COLOR.d \
 ./Core/Src/ILI9341.d \
 ./Core/Src/dma.d \
