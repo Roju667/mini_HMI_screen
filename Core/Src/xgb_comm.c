@@ -16,11 +16,12 @@ extern UART_HandleTypeDef huart1;
 /*
  * Basic send frame function, uart transmit function
  */
-static uint8_t send_frame(const uint8_t *p_frame, const uint8_t lenght) {
-  if ((HAL_UART_Transmit(&huart1, (uint8_t *)p_frame, lenght, 1000) !=
-       HAL_OK)) {
-    return XGB_ERR_TRANSMIT_TIMEOUT;
-  }
+static uint8_t send_frame(const uint8_t *p_frame, const uint8_t lenght)
+{
+  if ((HAL_UART_Transmit(&huart1, (uint8_t *)p_frame, lenght, 1000) != HAL_OK))
+    {
+      return XGB_ERR_TRANSMIT_TIMEOUT;
+    }
 
   return XGB_OK;
 }
@@ -28,33 +29,37 @@ static uint8_t send_frame(const uint8_t *p_frame, const uint8_t lenght) {
 /*
  * Delete all the empty spaces between parts of frame and add NULL at the end
  */
-static uint8_t prepare_frame(const u_frame *raw_frame, u_frame *ready_frame) {
+static uint8_t prepare_frame(const u_frame *raw_frame, u_frame *ready_frame)
+{
   uint8_t j = 0;
 
   // go trough array and if cell is not empty
   // rewrite it to ready frame
-  for (uint8_t i = 0; i < MAX_FRAME_SIZE; i++) {
-    if (raw_frame->frame_bytes[i] != 0) {
-      ready_frame->frame_bytes[j] = raw_frame->frame_bytes[i];
+  for (uint8_t i = 0; i < MAX_FRAME_SIZE; i++)
+    {
+      if (raw_frame->frame_bytes[i] != 0)
+        {
+          ready_frame->frame_bytes[j] = raw_frame->frame_bytes[i];
 
-      if (raw_frame->frame_bytes[i] == XGB_CC_EOT)  // if its EOT
-      {
-        // finish the message with NULL to create a string
-        ready_frame->frame_bytes[j + 1] = 0;  // NULL
-        return XGB_OK;
-      }
+          if (raw_frame->frame_bytes[i] == XGB_CC_EOT) // if its EOT
+            {
+              // finish the message with NULL to create a string
+              ready_frame->frame_bytes[j + 1] = 0; // NULL
+              return XGB_OK;
+            }
 
-      j++;
+          j++;
+        }
     }
-  }
   return XGB_ERR_EOT_MISSING;
 }
 
 /*
  * Prepare frame - request of individual read
  */
-static int8_t prepare_individual_read_frame(
-    u_frame *frame, const cmd_frame_data *p_frame_data) {
+static int8_t prepare_individual_read_frame(u_frame *frame,
+                                            const cmd_frame_data *p_frame_data)
+{
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
 
@@ -90,7 +95,7 @@ static int8_t prepare_individual_read_frame(
   // prepare device name
   temp_frame.ind_read_frame.device_name[0] = '%';
   temp_frame.ind_read_frame.device_name[1] =
-      p_frame_data->ind_read.device_type;  // device memory group (P,M,L etc.)
+      p_frame_data->ind_read.device_type; // device memory group (P,M,L etc.)
   temp_frame.ind_read_frame.device_name[2] = p_frame_data->ind_read.data_size;
   strcpy((char *restrict)(&temp_frame.ind_read_frame.device_name[3]),
          (const char *)p_frame_data->ind_read.p_device_address);
@@ -104,8 +109,9 @@ static int8_t prepare_individual_read_frame(
 /*
  * Prepare frame - request of individual write
  */
-static int8_t prepare_individual_write_frame(
-    u_frame *frame, const cmd_frame_data *p_frame_data) {
+static int8_t prepare_individual_write_frame(u_frame *frame,
+                                             const cmd_frame_data *p_frame_data)
+{
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
 
@@ -141,7 +147,7 @@ static int8_t prepare_individual_write_frame(
   // prepare device name
   temp_frame.ind_write_frame.device_name[0] = '%';
   temp_frame.ind_write_frame.device_name[1] =
-      p_frame_data->ind_write.device_type;  // device memory group (P,M,L etc.)
+      p_frame_data->ind_write.device_type; // device memory group (P,M,L etc.)
   temp_frame.ind_write_frame.device_name[2] = p_frame_data->ind_write.data_size;
   strcpy((char *restrict)(&temp_frame.ind_read_frame.device_name[3]),
          (const char *)p_frame_data->ind_write.p_device_address);
@@ -153,11 +159,12 @@ static int8_t prepare_individual_write_frame(
   memcpy(temp_frame.ind_write_frame.data, p_frame_data->ind_write.p_data_buffer,
          no_bytes_to_copy);
 
-  for (uint8_t i = 0; i < no_bytes_to_copy; i++) {
-    temp_frame.ind_write_frame.data[i] += '0';
-  }
+  for (uint8_t i = 0; i < no_bytes_to_copy; i++)
+    {
+      temp_frame.ind_write_frame.data[i] += '0';
+    }
 
-  temp_frame.ind_write_frame.tail_eot = XGB_CC_EOT;  // EOT
+  temp_frame.ind_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
   return prepare_frame(&temp_frame, frame);
 }
@@ -165,13 +172,14 @@ static int8_t prepare_individual_write_frame(
 /*
  * Prepare frame - request of continuous read
  */
-static int8_t prepare_continuous_read_frame(
-    u_frame *frame, const cmd_frame_data *p_frame_data) {
+static int8_t prepare_continuous_read_frame(u_frame *frame,
+                                            const cmd_frame_data *p_frame_data)
+{
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
 
   // header
-  temp_frame.cont_read_frame.header_enq = XGB_CC_ENQ;  // ENQ
+  temp_frame.cont_read_frame.header_enq = XGB_CC_ENQ; // ENQ
 
   // station number
   temp_frame.cont_read_frame.station_number[0] =
@@ -196,7 +204,7 @@ static int8_t prepare_continuous_read_frame(
   // prepare device name
   temp_frame.cont_read_frame.device_name[0] = '%';
   temp_frame.cont_read_frame.device_name[1] =
-      p_frame_data->cont_read.device_type;  // device memory group (P,M,L etc.)
+      p_frame_data->cont_read.device_type; // device memory group (P,M,L etc.)
   temp_frame.cont_read_frame.device_name[2] = p_frame_data->cont_read.data_size;
   strcpy((char *restrict)(&temp_frame.cont_read_frame.device_name[3]),
          (const char *)p_frame_data->cont_read.p_device_address);
@@ -207,7 +215,7 @@ static int8_t prepare_continuous_read_frame(
   temp_frame.cont_read_frame.no_data[1] =
       (p_frame_data->cont_read.no_of_data % 16) + '0';
 
-  temp_frame.cont_read_frame.tail_eot = XGB_CC_EOT;  // EOT
+  temp_frame.cont_read_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
   return prepare_frame(&temp_frame, frame);
@@ -216,13 +224,14 @@ static int8_t prepare_continuous_read_frame(
 /*
  * Prepare frame - request of continuous write
  */
-static int8_t prepare_continuous_write_frame(
-    u_frame *frame, const cmd_frame_data *p_frame_data) {
+static int8_t prepare_continuous_write_frame(u_frame *frame,
+                                             const cmd_frame_data *p_frame_data)
+{
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
 
   // header
-  temp_frame.cont_write_frame.header_enq = XGB_CC_ENQ;  // ENQ
+  temp_frame.cont_write_frame.header_enq = XGB_CC_ENQ; // ENQ
 
   // station number
   temp_frame.cont_write_frame.station_number[0] =
@@ -247,7 +256,7 @@ static int8_t prepare_continuous_write_frame(
   // prepare device name
   temp_frame.cont_write_frame.device_name[0] = '%';
   temp_frame.cont_write_frame.device_name[1] =
-      p_frame_data->cont_write.device_type;  // device memory group (P,M,L etc.)
+      p_frame_data->cont_write.device_type; // device memory group (P,M,L etc.)
   temp_frame.cont_write_frame.device_name[2] =
       p_frame_data->cont_write.data_size;
   strcpy((char *restrict)(&temp_frame.cont_write_frame.device_name[3]),
@@ -267,11 +276,12 @@ static int8_t prepare_continuous_write_frame(
   memcpy(temp_frame.cont_write_frame.data,
          p_frame_data->cont_write.p_data_buffer, no_bytes_to_copy);
 
-  for (uint8_t i = 0; i < no_bytes_to_copy; i++) {
-    temp_frame.cont_write_frame.data[i] += '0';
-  }
+  for (uint8_t i = 0; i < no_bytes_to_copy; i++)
+    {
+      temp_frame.cont_write_frame.data[i] += '0';
+    }
 
-  temp_frame.cont_write_frame.tail_eot = XGB_CC_EOT;  // EOT
+  temp_frame.cont_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
   return prepare_frame(&temp_frame, frame);
@@ -282,17 +292,20 @@ static int8_t prepare_continuous_write_frame(
 /*
  * Send request of individual read
  */
-uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data) {
+uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data)
+{
   u_frame frame;
 
-  if (prepare_individual_read_frame(&frame, p_frame_data) != XGB_OK) {
-    return XGB_ERR_EOT_MISSING;
-  }
+  if (prepare_individual_read_frame(&frame, p_frame_data) != XGB_OK)
+    {
+      return XGB_ERR_EOT_MISSING;
+    }
 
   if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK) {
-    return XGB_ERR_TRANSMIT_TIMEOUT;
-  }
+                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+    {
+      return XGB_ERR_TRANSMIT_TIMEOUT;
+    }
 
   return XGB_OK;
 }
@@ -300,34 +313,40 @@ uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data) {
 /*
  * Send request of individual write
  */
-uint8_t xgb_send_individual_write_cmd(const cmd_frame_data *p_frame_data) {
+uint8_t xgb_send_individual_write_cmd(const cmd_frame_data *p_frame_data)
+{
   u_frame frame;
 
-  if (prepare_individual_write_frame(&frame, p_frame_data) != XGB_OK) {
-    return XGB_ERR_EOT_MISSING;
-  }
+  if (prepare_individual_write_frame(&frame, p_frame_data) != XGB_OK)
+    {
+      return XGB_ERR_EOT_MISSING;
+    }
 
   if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK) {
-    return XGB_ERR_TRANSMIT_TIMEOUT;
-  }
+                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+    {
+      return XGB_ERR_TRANSMIT_TIMEOUT;
+    }
   return XGB_OK;
 }
 
 /*
  * Send request of continuous read
  */
-uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data) {
+uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data)
+{
   u_frame frame;
 
-  if (prepare_continuous_read_frame(&frame, p_frame_data) != XGB_OK) {
-    return XGB_ERR_EOT_MISSING;
-  }
+  if (prepare_continuous_read_frame(&frame, p_frame_data) != XGB_OK)
+    {
+      return XGB_ERR_EOT_MISSING;
+    }
 
   if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK) {
-    return XGB_ERR_TRANSMIT_TIMEOUT;
-  }
+                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+    {
+      return XGB_ERR_TRANSMIT_TIMEOUT;
+    }
 
   return XGB_OK;
 }
@@ -335,17 +354,20 @@ uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data) {
 /*
  * Send request of continuous write
  */
-uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data) {
+uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data)
+{
   u_frame frame;
 
-  if (prepare_continuous_write_frame(&frame, p_frame_data) != XGB_OK) {
-    return XGB_ERR_EOT_MISSING;
-  }
+  if (prepare_continuous_write_frame(&frame, p_frame_data) != XGB_OK)
+    {
+      return XGB_ERR_EOT_MISSING;
+    }
 
   if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK) {
-    return XGB_ERR_TRANSMIT_TIMEOUT;
-  }
+                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+    {
+      return XGB_ERR_TRANSMIT_TIMEOUT;
+    }
 
   return XGB_OK;
 }
@@ -355,7 +377,8 @@ uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data) {
  */
 uint8_t xgb_read_single_device(const xgb_device_type type,
                                const xgb_data_size_marking size_mark,
-                               const char *address) {
+                               const char *address)
+{
   cmd_frame_data frame = {0};
 
   frame.ind_read.data_size = size_mark;

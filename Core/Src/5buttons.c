@@ -17,8 +17,10 @@
 
 volatile button_flags_t flags;
 
-void set_button_flag(uint16_t GPIO_Pin) {
-  switch (GPIO_Pin) {
+void set_button_flag(uint16_t GPIO_Pin)
+{
+  switch (GPIO_Pin)
+    {
     case (BTN_LEFT):
       flags.left_flag = true;
       break;
@@ -42,31 +44,43 @@ void set_button_flag(uint16_t GPIO_Pin) {
     default:
       break;
       // different gpio
-  }
+    }
 
   return;
 }
 
-buttons_state_t buttons_check_flag(void) {
+buttons_state_t buttons_check_flag(void)
+{
   buttons_state_t active_button = IDLE;
 
-  if (flags.left_flag) {
-    active_button = LEFT_FLAG;
-  } else if (flags.right_flag) {
-    active_button = RIGHT_FLAG;
-  } else if (flags.down_flag) {
-    active_button = DOWN_FLAG;
-  } else if (flags.up_flag) {
-    active_button = UP_FLAG;
-  } else if (flags.enter_flag) {
-    active_button = ENTER_FLAG;
-  }
+  if (flags.left_flag)
+    {
+      active_button = LEFT_FLAG;
+    }
+  else if (flags.right_flag)
+    {
+      active_button = RIGHT_FLAG;
+    }
+  else if (flags.down_flag)
+    {
+      active_button = DOWN_FLAG;
+    }
+  else if (flags.up_flag)
+    {
+      active_button = UP_FLAG;
+    }
+  else if (flags.enter_flag)
+    {
+      active_button = ENTER_FLAG;
+    }
 
   return active_button;
 }
 
-void buttons_reset_flag(buttons_state_t state_flag) {
-  switch (state_flag) {
+void buttons_reset_flag(buttons_state_t state_flag)
+{
+  switch (state_flag)
+    {
     case (LEFT_FLAG):
       flags.left_flag = false;
       break;
@@ -90,10 +104,11 @@ void buttons_reset_flag(buttons_state_t state_flag) {
     case (IDLE):
     default:
       break;
-  }
+    }
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
   set_button_flag(GPIO_Pin);
   return;
 }

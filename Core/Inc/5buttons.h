@@ -10,7 +10,8 @@
 
 #include "stdbool.h"
 
-typedef enum buttons_state {
+typedef enum buttons_state
+{
   IDLE,
   LEFT_FLAG,
   RIGHT_FLAG,
@@ -19,7 +20,8 @@ typedef enum buttons_state {
   ENTER_FLAG
 } buttons_state_t;
 
-typedef struct button_flags {
+typedef struct button_flags
+{
   bool left_flag;
   bool right_flag;
   bool down_flag;

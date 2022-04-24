@@ -14,37 +14,42 @@ SPI_HandleTypeDef *Tft_hspi;
 static void ILI9341_Delay(uint32_t ms) { HAL_Delay(ms); }
 
 // Transmit data to ILI controller
-static void ILI9341_SendTFT(uint8_t *Data, uint8_t Lenght) {
+static void ILI9341_SendTFT(uint8_t *Data, uint8_t Lenght)
+{
   // HAL optimizing
 #if (ILI9341_HAL_OPTIMIZE == 1)
   // !! USE ONLY TFT FOR THIS SPI !!
   // optimizing like this doesnt LOCK SPI for other IT/DMA transfers
 
   // if there is something to send
-  while (Lenght > 0U) {
-    /* Wait until TXE flag is set to send data */
-    if (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE)) {
-      // put value from Data pointer to register DR
-      *((__IO uint8_t *)&Tft_hspi->Instance->DR) = *Data;
-      // increment pointer
-      Data++;
-      // decrement lenght
-      Lenght--;
+  while (Lenght > 0U)
+    {
+      /* Wait until TXE flag is set to send data */
+      if (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE))
+        {
+          // put value from Data pointer to register DR
+          *((__IO uint8_t *)&Tft_hspi->Instance->DR) = *Data;
+          // increment pointer
+          Data++;
+          // decrement lenght
+          Lenght--;
+        }
     }
-  }
   // blocking function for SPI , wait before sending next info
   // it is required beacuse when flag ENABLE is ready
   // it doesnt mean that transfer is ready
-  while (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_BSY) != RESET) {
-  }
-  // Without HAL optimizng
+  while (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_BSY) != RESET)
+    {
+    }
+    // Without HAL optimizng
 #else
   HAL_SPI_Transmit(Tft_hspi, Data, Lenght, ILI9341_SPI_TIMEOUT);
 }
 #endif
 }
 // Send single command
-static void ILI9341_SendCommand(uint8_t Command) {
+static void ILI9341_SendCommand(uint8_t Command)
+{
   // CS LOW
 #if (ILI9341_USE_CS == 1)
   ILI9341_CS_LOW;
@@ -64,7 +69,8 @@ static void ILI9341_SendCommand(uint8_t Command) {
 
 // Send 16 bit data
 #if (ILI9341_HAL_OPTIMIZE == 0)
-static void ILI9341_SendData16(uint16_t Data) {
+static void ILI9341_SendData16(uint16_t Data)
+{
   // CS LOW
 #if (ILI9341_USE_CS == 1)
   ILI9341_CS_LOW;
@@ -90,7 +96,8 @@ static void ILI9341_SendData16(uint16_t Data) {
 
 // Send command then data
 static void ILI9341_SendCommandAndData(uint8_t Command, uint8_t *Data,
-                                       uint16_t Lenght) {
+                                       uint16_t Lenght)
+{
   // CS LOW
 #if (ILI9341_USE_CS == 1)
   ILI9341_CS_LOW;
@@ -114,10 +121,13 @@ static void ILI9341_SendCommandAndData(uint8_t Command, uint8_t *Data,
 #endif
 }
 
-void ILI9341_SetRotation(uint8_t Rotation) {
-  if (Rotation > 3) return;
+void ILI9341_SetRotation(uint8_t Rotation)
+{
+  if (Rotation > 3)
+    return;
 
-  switch (Rotation) {
+  switch (Rotation)
+    {
     case 0:
       Rotation = (MADCTL_MX | MADCTL_BGR);
       break;
@@ -130,14 +140,15 @@ void ILI9341_SetRotation(uint8_t Rotation) {
     case 3:
       Rotation = (MADCTL_MX | MADCTL_MY | MADCTL_MV | MADCTL_BGR);
       break;
-  }
+    }
 
   ILI9341_SendCommandAndData(ILI9341_MADCTL, &Rotation, 1);
 }
 
 // Set adress range window
 static void ILI9341_SetAddrWindow(uint16_t x1, uint16_t y1, uint16_t w,
-                                  uint16_t h) {
+                                  uint16_t h)
+{
   // prepare buffer for data
   uint8_t DataToTransfer[4];
 
@@ -162,43 +173,46 @@ static void ILI9341_SetAddrWindow(uint16_t x1, uint16_t y1, uint16_t w,
   // send command and data about y
   ILI9341_SendCommandAndData(ILI9341_PASET, DataToTransfer, 4);
 
-  ILI9341_SendCommand(ILI9341_RAMWR);  // Write to RAM
+  ILI9341_SendCommand(ILI9341_RAMWR); // Write to RAM
 }
 
 // Write single pixel
-void ILI9341_WritePixel(int16_t x, int16_t y, uint16_t color) {
+void ILI9341_WritePixel(int16_t x, int16_t y, uint16_t color)
+{
   // prepare buffer for data
   uint8_t DataToTransfer[2];
 
   // check TFT range to not overwrite something else
-  if ((x >= 0) && (x < ILI9341_TFTWIDTH) && (y >= 0) &&
-      (y < ILI9341_TFTHEIGHT)) {
-    //	put data into buffer
-    DataToTransfer[0] = (color >> 8);
-    DataToTransfer[1] = color & 0xFF;
+  if ((x >= 0) && (x < ILI9341_TFTWIDTH) && (y >= 0) && (y < ILI9341_TFTHEIGHT))
+    {
+      //	put data into buffer
+      DataToTransfer[0] = (color >> 8);
+      DataToTransfer[1] = color & 0xFF;
 
-    // Set window range the single pixel in tft
-    // x,y positions 1,1 ranges
-    ILI9341_SetAddrWindow(x, y, 1, 1);
+      // Set window range the single pixel in tft
+      // x,y positions 1,1 ranges
+      ILI9341_SetAddrWindow(x, y, 1, 1);
 
-    // send command that we are writing to RAM, and also color data
-    ILI9341_SendCommandAndData(ILI9341_RAMWR, DataToTransfer, 2);
-    // Send 16 bit color to that range
-  }
+      // send command that we are writing to RAM, and also color data
+      ILI9341_SendCommandAndData(ILI9341_RAMWR, DataToTransfer, 2);
+      // Send 16 bit color to that range
+    }
 }
 
-void ILI9341_DrawImage(int x, int y, const uint8_t *img, uint16_t w,
-                       uint16_t h) {
+void ILI9341_DrawImage(int x, int y, const uint8_t *img, uint16_t w, uint16_t h)
+{
   // check if the image is inisde tft boundaries
   if ((x >= 0) && ((x + w) <= ILI9341_TFTWIDTH) && (y >= 0) &&
-      ((y + h) <= ILI9341_TFTHEIGHT)) {
-    ILI9341_SetAddrWindow(x, y, w, h);
-    ILI9341_SendCommandAndData(ILI9341_RAMWR, (uint8_t *)img, (w * h * 2));
-  }
+      ((y + h) <= ILI9341_TFTHEIGHT))
+    {
+      ILI9341_SetAddrWindow(x, y, w, h);
+      ILI9341_SendCommandAndData(ILI9341_RAMWR, (uint8_t *)img, (w * h * 2));
+    }
 }
 
 // Clear whole dipslay with a color
-void ILI9341_ClearDisplay(uint16_t color) {
+void ILI9341_ClearDisplay(uint16_t color)
+{
   uint32_t Lenght = ILI9341_TFTWIDTH * ILI9341_TFTHEIGHT;
 
   // set window for whole screen
@@ -217,40 +231,45 @@ void ILI9341_ClearDisplay(uint16_t color) {
   // DC HIGH
   ILI9341_DC_HIGH;
 
-  while (Lenght > 0U) {
-    /* Wait until TXE flag is set to send data */
-    if (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE)) {
-      // put value from Data pointer to register DR
-      *((__IO uint8_t *)&Tft_hspi->Instance->DR) = color >> 8;
+  while (Lenght > 0U)
+    {
+      /* Wait until TXE flag is set to send data */
+      if (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE))
+        {
+          // put value from Data pointer to register DR
+          *((__IO uint8_t *)&Tft_hspi->Instance->DR) = color >> 8;
 
-      // wait for the flag to be reset before sending next byte
-      while (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE) != SET) {
-      }
+          // wait for the flag to be reset before sending next byte
+          while (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE) != SET)
+            {
+            }
 
-      // put second byte in
-      *((__IO uint8_t *)&Tft_hspi->Instance->DR) = color & 0xFF;
+          // put second byte in
+          *((__IO uint8_t *)&Tft_hspi->Instance->DR) = color & 0xFF;
 
-      // decrement lenght
-      Lenght--;
+          // decrement lenght
+          Lenght--;
+        }
     }
-  }
 
   // blocking function for SPI , wait before sending next info
   // it is required beacuse when flag ENABLE is ready
   // it doesnt mean that transfer is ready
-  while (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_BSY) != RESET) {
-  }
+  while (__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_BSY) != RESET)
+    {
+    }
 
-  // CS HIGH
+    // CS HIGH
 #if (ILI9341_USE_CS == 1)
   ILI9341_CS_HIGH;
 #endif
 
 #else
   // without HAL optimizing
-  for (uint32_t i = 0; i < Lenght; i++) {
-    ILI9341_SendData16(color);
-  }
+  for (uint32_t i = 0; i < Lenght; i++)
+    {
+      ILI9341_SendData16(color);
+    }
 #endif
 }
 
@@ -293,23 +312,23 @@ static const uint8_t initcmd[] = {
     0x00,
     ILI9341_PWCTR1,
     1,
-    0x23,  // Power control VRH[5:0]
+    0x23, // Power control VRH[5:0]
     ILI9341_PWCTR2,
     1,
-    0x10,  // Power control SAP[2:0];BT[3:0]
+    0x10, // Power control SAP[2:0];BT[3:0]
     ILI9341_VMCTR1,
     2,
     0x3e,
-    0x28,  // VCM control
+    0x28, // VCM control
     ILI9341_VMCTR2,
     1,
-    0x86,  // VCM control2
+    0x86, // VCM control2
     ILI9341_MADCTL,
     1,
-    0x48,  // Memory Access Control
+    0x48, // Memory Access Control
     ILI9341_VSCRSADD,
     1,
-    0x00,  // Vertical scroll zero
+    0x00, // Vertical scroll zero
     ILI9341_PIXFMT,
     1,
     0x55,
@@ -321,13 +340,13 @@ static const uint8_t initcmd[] = {
     3,
     0x08,
     0x82,
-    0x27,  // Display Function Control
+    0x27, // Display Function Control
     0xF2,
     1,
-    0x00,  // 3Gamma Function Disable
+    0x00, // 3Gamma Function Disable
     ILI9341_GAMMASET,
     1,
-    0x01,  // Gamma curve selected
+    0x01, // Gamma curve selected
     ILI9341_GMCTRP1,
     15,
     0x0F,
@@ -335,7 +354,7 @@ static const uint8_t initcmd[] = {
     0x2B,
     0x0C,
     0x0E,
-    0x08,  // Set Gamma
+    0x08, // Set Gamma
     0x4E,
     0xF1,
     0x37,
@@ -352,7 +371,7 @@ static const uint8_t initcmd[] = {
     0x14,
     0x03,
     0x11,
-    0x07,  // Set Gamma
+    0x07, // Set Gamma
     0x31,
     0xC1,
     0x48,
@@ -363,13 +382,14 @@ static const uint8_t initcmd[] = {
     0x36,
     0x0F,
     ILI9341_SLPOUT,
-    0x80,  // Exit Sleep
+    0x80, // Exit Sleep
     ILI9341_DISPON,
-    0x80,  // Display on
-    0x00   // End of list
+    0x80, // Display on
+    0x00  // End of list
 };
 
-void ILI9341_Init(SPI_HandleTypeDef *hspi) {
+void ILI9341_Init(SPI_HandleTypeDef *hspi)
+{
   // assign correct spi
   Tft_hspi = hspi;
 
@@ -389,33 +409,35 @@ void ILI9341_Init(SPI_HandleTypeDef *hspi) {
   ILI9341_RST_HIGH;
   ILI9341_Delay(10);
 #else
-  ILI9341_SendCommand(ILI9341_SWRESET);  // Engage software reset
+  ILI9341_SendCommand(ILI9341_SWRESET); // Engage software reset
   ILI9341_Delay(150);
 #endif
 
   // As long as value under address is not 0 loop
-  while ((cmd = *(addr++)) > 0) {
-    // assign value form address to x (second value that is number of data to be
-    // send)
-    x = *(addr++);
+  while ((cmd = *(addr++)) > 0)
+    {
+      // assign value form address to x (second value that is number of data to
+      // be send)
+      x = *(addr++);
 
-    // mask this value to maximum of 127
-    // 0x7F	0111 1111
-    // so if we send 0x80 as second argument then we just send command ->
-    // without data
-    numArgs = x & 0x7F;
+      // mask this value to maximum of 127
+      // 0x7F	0111 1111
+      // so if we send 0x80 as second argument then we just send command ->
+      // without data
+      numArgs = x & 0x7F;
 
-    // send command then array of data
-    ILI9341_SendCommandAndData(cmd, (uint8_t *)addr, numArgs);
+      // send command then array of data
+      ILI9341_SendCommandAndData(cmd, (uint8_t *)addr, numArgs);
 
-    // move adress to next command
-    addr += numArgs;
+      // move adress to next command
+      addr += numArgs;
 
-    // if only command is sent then make a delay
-    if (x & 0x80) {
-      ILI9341_Delay(150);
+      // if only command is sent then make a delay
+      if (x & 0x80)
+        {
+          ILI9341_Delay(150);
+        }
     }
-  }
 
   ILI9341_SetRotation(ILI9341_ROTATION);
 }
