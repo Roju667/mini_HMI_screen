@@ -1,4 +1,4 @@
 5buttons.c:20:6:set_button_flag	16	static
-5buttons.c:50:17:buttons_check_flag	16	static
-5buttons.c:68:6:buttons_reset_flag	16	static
-5buttons.c:96:6:HAL_GPIO_EXTI_Callback	16	static
+5buttons.c:52:17:buttons_check_flag	16	static
+5buttons.c:80:6:buttons_reset_flag	16	static
+5buttons.c:110:6:HAL_GPIO_EXTI_Callback	16	static

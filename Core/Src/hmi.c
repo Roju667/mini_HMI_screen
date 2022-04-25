@@ -45,10 +45,12 @@
 // Top of the pointer
 #define OFFSET_X_CURSOR_POINTER 20U
 
-// Font size
+// Font and text dimensions
 #define FONT_WIDTH 5U
 #define FONT_SPACE 1U
 #define FONT_HEIGHT 8U
+#define TEXT_X_OFFSET 10U
+#define TEXT_Y_OFFSET 10U
 
 // Colors
 #define HMI_TILE_COLOR ILI9341_YELLOW
@@ -59,17 +61,18 @@
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
-volatile hmi_state state;
+volatile hmi_state_t state;
 volatile bool frame_returned;
-hmi_screen screen;
+hmi_screen_t screen;
 uint8_t p_data[MAX_FRAME_SIZE];
 
 // draw functions
 static void draw_cursor(ColorType color);
 static void draw_tile(const uint8_t tile_number);
-static void draw_title_tile(const char *text);
 static void draw_main_screen(void);
 static void draw_edit_menu(void);
+static void draw_wide_tile(const char *text, uint8_t tile_number,
+                           bool center_text);
 
 // utility
 static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
@@ -103,7 +106,7 @@ static void change_active_tile_number(buttons_state_t pending_flag)
   return;
 }
 
-static void change_cursor_position(buttons_state_t pending_flag)
+static void change_cursor_position_main(buttons_state_t pending_flag)
 {
   // erase active tile
   draw_cursor(HMI_BACKGROUND_COLOR);
@@ -115,7 +118,7 @@ static void change_cursor_position(buttons_state_t pending_flag)
   return;
 }
 
-static void check_pending_flags(void)
+static void check_pending_flags_main(void)
 {
   buttons_state_t pending_flag = buttons_check_flag();
 
@@ -127,11 +130,49 @@ static void check_pending_flags(void)
         case (RIGHT_FLAG):
         case (UP_FLAG):
         case (DOWN_FLAG):
-          change_cursor_position(pending_flag);
+          change_cursor_position_main(pending_flag);
           break;
 
         case (ENTER_FLAG):
           open_edit_menu();
+          break;
+        case (IDLE):
+        default:
+          break;
+        }
+    }
+
+  return;
+}
+
+static void change_tile_cursor_edit(buttons_state_t pending_flag,
+                                    uint8_t current_pos)
+{
+}
+
+static void change_switch_cursor_edit(buttons_state_t pending_flag,
+                                      hmi_edit_cursors_t *p_cursors)
+{
+}
+
+static void check_pending_flags_edit(hmi_edit_cursors_t *p_cursors)
+{
+  buttons_state_t pending_flag = buttons_check_flag();
+
+  if (IDLE != pending_flag)
+    {
+      switch (pending_flag)
+        {
+        case (LEFT_FLAG):
+        case (RIGHT_FLAG):
+          change_switch_cursor_edit(pending_flag, p_cursors);
+          break;
+        case (UP_FLAG):
+        case (DOWN_FLAG):
+          change_cursor_position_edit(pending_flag, p_cursors->pos_tile);
+          break;
+
+        case (ENTER_FLAG):
           break;
         case (IDLE):
         default:
@@ -168,12 +209,12 @@ static void hmi_active_screen(void)
             }
 
           // check if button was pressed
-          check_pending_flags();
+          check_pending_flags_main();
         }
     }
 }
 
-static void hmi_read_tile_function(const union tile_data *p_data)
+static void hmi_read_tile_function(const struct tile_data *p_data)
 {
   // read on DMA
   frame_returned = false;
@@ -181,8 +222,7 @@ static void hmi_read_tile_function(const union tile_data *p_data)
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)p_data, MAX_FRAME_SIZE);
 
   // send read command
-  xgb_read_single_device(p_data->read_tile.type, p_data->read_tile.size_mark,
-                         p_data->read_tile.address);
+  xgb_read_single_device(p_data->type, p_data->size_mark, p_data->address);
 
   // wait for return frame
   uint32_t current_tick = HAL_GetTick();
@@ -197,11 +237,11 @@ static void hmi_read_tile_function(const union tile_data *p_data)
 
   if (true == timeout_error)
     {
-      draw_tile(p_data->read_tile.tile_number);
+      draw_tile(p_data->tile_number);
     }
   else
     {
-      draw_tile(p_data->read_tile.tile_number);
+      draw_tile(p_data->tile_number);
     }
 
   return;
@@ -294,24 +334,10 @@ static void draw_cursor(ColorType color)
   return;
 }
 
-// draw title tile on the top of the screen
-static void draw_title_tile(const char *text)
-{
-  GFX_DrawRectangle(OFFSET_X_LEFT_BORDER, GAP_Y_BETWEEN_TILES, TITLE_TILE_WIDTH,
-                    TITLE_TILE_HEIGHT, HMI_TILE_COLOR);
-
-  uint32_t x_pos = find_x_to_center_text(
-      text, OFFSET_X_LEFT_BORDER, (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
-
-  GFX_DrawString(x_pos, 10, text, HMI_TEXT_COLOR);
-
-  return;
-}
-
 static void draw_main_screen(void)
 {
   ILI9341_ClearDisplay(HMI_BACKGROUND_COLOR);
-  draw_title_tile("XGB PLC COMMUNICATION");
+  draw_wide_tile("XGB PLC COMMUNICATION", 0, true);
   for (uint8_t i = 0; i < 10; i++)
     {
       draw_tile(i);
@@ -333,11 +359,43 @@ static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
 // draw edit menu
 static void draw_edit_menu(void)
 {
+  const char *tile_text[] = {"Tile function:", "Device Type:", "Device Size:",
+                             "Device Address:", "Confirm - Discard"};
+
   ILI9341_ClearDisplay(HMI_EDIT_MENU_COLOR);
 
   char message[32] = {0};
   sprintf(message, "TILE NUMBER %d", screen.active_button);
-  draw_title_tile(message);
+  draw_wide_tile(message, 0, true);
+
+  for (uint8_t i = 1; i < 5; i++)
+    {
+      draw_wide_tile(tile_text[i - 1], i, false);
+    }
+  draw_wide_tile(tile_text[4], 5, true);
+
+  return;
+}
+
+static void draw_wide_tile(const char *text, uint8_t tile_number,
+                           bool center_text)
+{
+  GFX_DrawRectangle(OFFSET_X_LEFT_BORDER,
+                    (GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * tile_number,
+                    TITLE_TILE_WIDTH, TITLE_TILE_HEIGHT, HMI_TILE_COLOR);
+
+  uint32_t x_pos = TEXT_X_OFFSET;
+
+  if (center_text == true)
+    {
+      x_pos = find_x_to_center_text(text, OFFSET_X_LEFT_BORDER,
+                                    (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+    }
+
+  GFX_DrawString(x_pos,
+                 ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * tile_number) +
+                     TEXT_Y_OFFSET,
+                 text, HMI_TEXT_COLOR);
 
   return;
 }
@@ -352,6 +410,18 @@ static void open_edit_menu(void)
 
 static void edit_tile(void)
 {
+  hmi_edit_cursors_t edit_cursors = {.pos_tile = 1};
+
+  const char *fun_switch[] = {"Read", "Write"};
+  const char device_switch[] = {XGB_DEV_TYPE_P, XGB_DEV_TYPE_M, XGB_DEV_TYPE_K,
+                                XGB_DEV_TYPE_F, XGB_DEV_TYPE_T, XGB_DEV_TYPE_C,
+                                XGB_DEV_TYPE_L, XGB_DEV_TYPE_N, XGB_DEV_TYPE_D,
+                                XGB_DEV_TYPE_U, XGB_DEV_TYPE_Z, XGB_DEV_TYPE_R};
+
+  const char size_switch[] = {XGB_DATA_SIZE_BIT, XGB_DATA_SIZE_BYTE,
+                              XGB_DATA_SIZE_WORD, XGB_DATA_SIZE_DWORD,
+                              XGB_DATA_SIZE_LWORD};
+
   while (1)
     {
     }

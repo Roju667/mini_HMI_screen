@@ -18,37 +18,44 @@ typedef enum hmi_state
   INIT_TFT = 1,
   ACTIVE_SCREEN = 2,
   EDIT_TILE = 3
-} hmi_state;
+} hmi_state_t;
 
-struct read_tile_data
+struct tile_data
 {
   uint8_t tile_number;
+  uint8_t function;
   xgb_device_type type;
   xgb_data_size_marking size_mark;
   char *address;
 };
 
-union tile_data
-{
-  struct read_tile_data read_tile;
-};
+typedef void (*tile_callback_t)(const struct tile_data *p_data);
 
-typedef void (*tile_callback_t)(const union tile_data *p_data);
-
-typedef struct hmi_button
+typedef struct hmi_tile
 {
   bool tile_active;
   char *p_text;
-  union tile_data data;
+  struct tile_data data;
   tile_callback_t callback;
-} hmi_tile;
+} hmi_tile_t;
+
+
+typedef struct hmi_edit_cursors
+{
+  uint8_t pos_tile;
+  uint8_t pos_fun;
+  uint8_t pos_dev;
+  uint8_t pos_size;
+  uint8_t pos_address;
+  uint8_t pos_address_num;
+} hmi_edit_cursors_t;
 
 typedef struct hmi_screen
 {
   uint8_t active_button;
-  hmi_tile buttons[10];
+  hmi_tile_t buttons[10];
 
-} hmi_screen;
+} hmi_screen_t;
 
 void hmi_main(void);
 
