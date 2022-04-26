@@ -66,6 +66,23 @@ volatile bool frame_returned;
 hmi_screen_t screen;
 uint8_t p_data[MAX_FRAME_SIZE];
 
+// edit menu text
+const edit_option_t fun_switch[] = {{"<READ>", 0}, {"<WRITE>", 0}};
+
+const edit_option_t device_switch[] = {
+    {"<P>", XGB_DEV_TYPE_P}, {"<M>", XGB_DEV_TYPE_M}, {"<K>", XGB_DEV_TYPE_K},
+    {"<F>", XGB_DEV_TYPE_F}, {"<T>", XGB_DEV_TYPE_T}, {"<C>", XGB_DEV_TYPE_C},
+    {"<L>", XGB_DEV_TYPE_L}, {"<N>", XGB_DEV_TYPE_N}, {"<D>", XGB_DEV_TYPE_D},
+    {"<U>", XGB_DEV_TYPE_U}, {"<Z>", XGB_DEV_TYPE_Z}, {"<R>", XGB_DEV_TYPE_R}};
+
+const edit_option_t size_switch[] = {{"<BIT>", XGB_DATA_SIZE_BIT},
+                                     {"<BYTE>", XGB_DATA_SIZE_BYTE},
+                                     {"<WORD>", XGB_DATA_SIZE_WORD},
+                                     {"<DWORD>", XGB_DATA_SIZE_DWORD},
+                                     {"<LWORD>", XGB_DATA_SIZE_LWORD}};
+
+const edit_option_t *std_switch[] = {fun_switch, device_switch, size_switch};
+
 // draw functions
 static void draw_cursor(ColorType color);
 static void draw_tile(const uint8_t tile_number);
@@ -73,10 +90,12 @@ static void draw_main_screen(void);
 static void draw_edit_menu(void);
 static void draw_wide_tile(const char *text, uint8_t tile_number,
                            bool center_text);
+static void draw_std_switch_txt(hmi_edit_cursors_t *p_cursors);
 
 // utility
 static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
                                       uint32_t right_border);
+static uint32_t get_switch_cursor(hmi_edit_cursors_t *p_cursors);
 
 // edit menu functions
 static void open_edit_menu(void);
@@ -150,9 +169,50 @@ static void change_tile_cursor_edit(buttons_state_t pending_flag,
 {
 }
 
+static void update_switch_cursor(buttons_state_t pending_flag,
+                                 hmi_edit_cursors_t *p_cursors)
+{
+  if (pending_flag == LEFT_FLAG)
+    {
+      switch (p_cursors->pos_tile)
+        {
+        case (1):
+          p_cursors->pos_fun = (p_cursors->pos_fun + 1) % 2;
+          break;
+        case (2):
+          p_cursors->pos_dev = (p_cursors->pos_dev + 11) % 12;
+          break;
+        case (3):
+          p_cursors->pos_size = (p_cursors->pos_size + 4) % 5;
+          break;
+        }
+    }
+  else if (pending_flag == RIGHT_FLAG)
+    {
+      switch (p_cursors->pos_tile)
+        {
+        case (1):
+          p_cursors->pos_fun = (p_cursors->pos_fun + 1) % 2;
+          break;
+        case (2):
+          p_cursors->pos_dev = (p_cursors->pos_dev + 1) % 12;
+          break;
+        case (3):
+          p_cursors->pos_size = (p_cursors->pos_size + 1) % 5;
+          break;
+        }
+    }
+
+  return;
+}
+
 static void change_switch_cursor_edit(buttons_state_t pending_flag,
                                       hmi_edit_cursors_t *p_cursors)
 {
+  if (p_cursors->pos_tile < 4)
+    {
+      draw_std_switch_txt(p_cursors);
+    }
 }
 
 static void check_pending_flags_edit(hmi_edit_cursors_t *p_cursors)
@@ -169,7 +229,7 @@ static void check_pending_flags_edit(hmi_edit_cursors_t *p_cursors)
           break;
         case (UP_FLAG):
         case (DOWN_FLAG):
-          change_cursor_position_edit(pending_flag, p_cursors->pos_tile);
+          change_tile_cursor_edit(pending_flag, p_cursors->pos_tile);
           break;
 
         case (ENTER_FLAG):
@@ -272,12 +332,6 @@ void hmi_main(void)
             break;
           }
 
-        case (EDIT_TILE):
-          {
-            hmi_active_screen();
-            break;
-          }
-
         default:
           {
             // shouldnt happend
@@ -356,6 +410,26 @@ static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
   return start_text_pos;
 }
 
+// this function return value of the cursor of current tile
+static uint32_t get_switch_cursor(hmi_edit_cursors_t *p_cursors)
+{
+  uint32_t position = 0;
+  switch (p_cursors->pos_tile)
+    {
+    case (1):
+      position = p_cursors->pos_fun;
+      break;
+    case (2):
+      position = p_cursors->pos_dev;
+      break;
+    case (3):
+      position = p_cursors->pos_size;
+      break;
+    }
+
+  return position;
+}
+
 // draw edit menu
 static void draw_edit_menu(void)
 {
@@ -385,6 +459,8 @@ static void draw_wide_tile(const char *text, uint8_t tile_number,
                     TITLE_TILE_WIDTH, TITLE_TILE_HEIGHT, HMI_TILE_COLOR);
 
   uint32_t x_pos = TEXT_X_OFFSET;
+  uint32_t y_pos =
+      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * tile_number) + TEXT_Y_OFFSET;
 
   if (center_text == true)
     {
@@ -392,12 +468,30 @@ static void draw_wide_tile(const char *text, uint8_t tile_number,
                                     (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
     }
 
-  GFX_DrawString(x_pos,
-                 ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * tile_number) +
-                     TEXT_Y_OFFSET,
-                 text, HMI_TEXT_COLOR);
+  GFX_DrawString(x_pos, y_pos, text, HMI_TEXT_COLOR);
 
   return;
+}
+
+static void draw_std_switch_txt(hmi_edit_cursors_t *p_cursors)
+{
+  uint32_t x_pos = find_x_to_center_text(
+      std_switch[(p_cursors->pos_tile) - 1][p_cursors->pos_dev].display_text,
+      150, 314);
+  ;
+  uint32_t y_pos =
+      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * p_cursors->pos_tile) +
+      TEXT_Y_OFFSET;
+
+  // select switch cursor depending on tile cursor
+  uint32_t switch_cursor = get_switch_cursor(p_cursors);
+  // clear text
+  GFX_DrawFillRectangle(x_pos, y_pos, 100, 8, HMI_EDIT_MENU_COLOR);
+
+  GFX_DrawString(
+      x_pos, y_pos,
+      std_switch[(p_cursors->pos_tile) - 1][switch_cursor].display_text,
+      HMI_TEXT_COLOR);
 }
 
 // open edit menu to save read/write function to tile
@@ -412,17 +506,11 @@ static void edit_tile(void)
 {
   hmi_edit_cursors_t edit_cursors = {.pos_tile = 1};
 
-  const char *fun_switch[] = {"Read", "Write"};
-  const char device_switch[] = {XGB_DEV_TYPE_P, XGB_DEV_TYPE_M, XGB_DEV_TYPE_K,
-                                XGB_DEV_TYPE_F, XGB_DEV_TYPE_T, XGB_DEV_TYPE_C,
-                                XGB_DEV_TYPE_L, XGB_DEV_TYPE_N, XGB_DEV_TYPE_D,
-                                XGB_DEV_TYPE_U, XGB_DEV_TYPE_Z, XGB_DEV_TYPE_R};
-
-  const char size_switch[] = {XGB_DATA_SIZE_BIT, XGB_DATA_SIZE_BYTE,
-                              XGB_DATA_SIZE_WORD, XGB_DATA_SIZE_DWORD,
-                              XGB_DATA_SIZE_LWORD};
+  // do not need second struct part, but to keep switch options all the same
+  // i use this struct
 
   while (1)
     {
+      check_pending_flags_edit(&edit_cursors);
     }
 }

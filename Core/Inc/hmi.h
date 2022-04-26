@@ -39,7 +39,6 @@ typedef struct hmi_tile
   tile_callback_t callback;
 } hmi_tile_t;
 
-
 typedef struct hmi_edit_cursors
 {
   uint8_t pos_tile;
@@ -49,6 +48,12 @@ typedef struct hmi_edit_cursors
   uint8_t pos_address;
   uint8_t pos_address_num;
 } hmi_edit_cursors_t;
+
+typedef struct edit_option
+{
+  char *display_text;
+  char frame_letter;
+} edit_option_t;
 
 typedef struct hmi_screen
 {

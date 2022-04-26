@@ -61,8 +61,8 @@ all: main-build
 main-build: mini_HMI_screen.elf secondary-outputs
 
 # Tool invocations
-mini_HMI_screen.elf: $(OBJS) $(USER_OBJS) D:\Embedded\ C\kurs\mini_HMI_screen\STM32F103C6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "mini_HMI_screen.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\Embedded C\kurs\mini_HMI_screen\STM32F103C6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="mini_HMI_screen.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+mini_HMI_screen.elf: $(OBJS) $(USER_OBJS) C:\Users\ROJEK\STM32CubeIDE\workspace_1.6.1\mini_HMI_screen\STM32F103C6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "mini_HMI_screen.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\ROJEK\STM32CubeIDE\workspace_1.6.1\mini_HMI_screen\STM32F103C6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="mini_HMI_screen.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
