@@ -1,12 +1,4 @@
-/*
- * GFX_BW.h
- *
- *  The MIT License.
- *  Created on: 25.05.2017
- *      Author: Mateusz Salamon
- *      www.msalamon.pl
- *      mateusz@msalamon.pl
- */
+
 
 #include "main.h"
 #include "ILI9341.h"

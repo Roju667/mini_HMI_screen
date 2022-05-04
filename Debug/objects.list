@@ -15,6 +15,8 @@
 "./Core/Src/usart.o"
 "./Core/Src/xgb_comm.o"
 "./Core/Startup/startup_stm32f103c6tx.o"
+"./Core/hmi/Src/hmi_draw.o"
+"./Core/hmi/Src/hmi_edit_menu.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.o"
