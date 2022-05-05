@@ -1,0 +1,15 @@
+hmi_edit_menu.c:68:6:em_open_edit_menu	16	static
+hmi_edit_menu.c:79:21:em_active_screen	24	static
+hmi_edit_menu.c:103:1:em_check_pending_flags	24	static
+hmi_edit_menu.c:136:13:em_change_horiz_cursor	16	static
+hmi_edit_menu.c:167:13:em_redraw_horiz_header	16	static
+hmi_edit_menu.c:189:13:em_redraw_horiz_std_switch	16	static
+hmi_edit_menu.c:198:13:em_redraw_horiz_address_switch	16	static
+hmi_edit_menu.c:218:13:em_redraw_horiz_exit_switch	16	static
+hmi_edit_menu.c:227:13:em_update_horiz_cursor_pos	16	static
+hmi_edit_menu.c:287:13:em_change_vert_cursor	16	static
+hmi_edit_menu.c:307:13:em_redraw_vert_address	16	static
+hmi_edit_menu.c:318:13:em_redraw_vert_cursor	16	static
+hmi_edit_menu.c:347:13:em_update_vert_cursor_val	16	static
+hmi_edit_menu.c:384:28:em_enter_action	24	static
+hmi_edit_menu.c:424:13:em_assign_fun_to_tile	24	static

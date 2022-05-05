@@ -15,7 +15,7 @@
 #define BTN_UP BUTTON_UP_Pin
 #define BTN_ENTER BUTTON_ENTER_Pin
 
-volatile button_flags_t flags;
+static volatile button_flags_t flags;
 
 void set_button_flag(uint16_t GPIO_Pin)
 {

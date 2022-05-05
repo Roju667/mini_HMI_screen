@@ -11,11 +11,14 @@
 #include "stdbool.h"
 #include "xgb_comm.h"
 
+typedef uint8_t cursor;
+
 typedef enum hmi_change_screen
 {
   NO_CHANGE = 0,
   OPEN_EDIT_MENU = 1,
-  OPEN_MAIN_MENU = 2
+  OPEN_MAIN_MENU = 2,
+  SAVE_DATA_TO_TILE = 3
 } hmi_change_screen_t;
 
 typedef enum hmi_state
@@ -29,11 +32,18 @@ typedef enum hmi_state
   EDIT_MENU = 5
 } hmi_state_t;
 
+typedef enum tile_function
+{
+	READ = 0,
+	WRITE_CONT = 1,
+	WRTIE_SINGLE = 2
+}tile_function_t;
+
 struct tile_data
 {
   uint8_t tile_number;
   uint8_t function;
-  xgb_device_type type;
+  xgb_device_type device_type;
   xgb_data_size_marking size_mark;
   char *address;
 };
@@ -48,7 +58,7 @@ typedef struct hmi_tile
   tile_callback_t callback;
 } hmi_tile_t;
 
-enum edit_tiles
+enum cursor_tiles
 {
   TILE_HEADER = 0,
   TILE_FUNCTION = 1,
@@ -60,15 +70,15 @@ enum edit_tiles
 
 typedef struct hmi_edit_cursors
 {
-  enum edit_tiles pos_tile;
-  uint8_t pos_fun;
-  uint8_t pos_dev;
-  uint8_t pos_size;
-  uint8_t pos_address;
-  uint8_t pos_address_num;
-  uint8_t pos_exit;
+  enum cursor_tiles vert_tile;
+  cursor horiz_fun;
+  cursor horiz_dev;
+  cursor horiz_size;
+  cursor horiz_address;
+  cursor vert_address_num;
+  cursor horiz_exit;
   char address[6];
-  bool edit_mode;
+  bool edit_mode_active;
 } hmi_edit_cursors_t;
 
 typedef struct edit_option
@@ -82,7 +92,7 @@ typedef struct hmi_screen
   uint8_t active_main_tile;
   hmi_tile_t buttons[10];
 
-} hmi_screen_t;
+} hmi_main_screen_t;
 
 void hmi_main(void);
 

@@ -1,6 +1,9 @@
 #ifndef INC_HMI_DRAW_H_
 #define INC_HMI_DRAW_H_
 
+#include "ILI9341.h"
+#include "GFX_COLOR.h"
+
 // Colors
 #define HMI_TILE_COLOR ILI9341_YELLOW
 #define HMI_BACKGROUND_COLOR ILI9341_BLACK
@@ -22,9 +25,10 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors);
 void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color);
 void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color);
 void draw_update_tile_number(char number);
-void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors);
+void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_option_t **p_std_switch);
 void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
-                         uint8_t switch_number);
-void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors);
+                         uint8_t switch_number,const edit_option_t **p_std_switch);
+void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch);
+
 
 #endif // (INC_HMI_DRAW_H_)

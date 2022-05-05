@@ -1,5 +1,6 @@
-Core/hmi/Src/hmi_draw.o: ../Core/hmi/Src/hmi_draw.c ../Core/Inc/ILI9341.h \
- ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
+Core/hmi/Src/hmi_draw.o: ../Core/hmi/Src/hmi_draw.c ../Core/Inc/hmi.h \
+ ../Core/Inc/xgb_comm.h ../Core/Inc/main.h \
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h \
@@ -23,10 +24,12 @@ Core/hmi/Src/hmi_draw.o: ../Core/hmi/Src/hmi_draw.c ../Core/Inc/ILI9341.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/hmi.h ../Core/Inc/xgb_comm.h ../Core/Inc/main.h \
- ../Core/Inc/GFX_COLOR.h ../Core/hmi/Inc/hmi_draw.h
+ ../Core/hmi/Inc/hmi_draw.h ../Core/Inc/ILI9341.h ../Core/Inc/main.h \
+ ../Core/Inc/GFX_COLOR.h
 
-../Core/Inc/ILI9341.h:
+../Core/Inc/hmi.h:
+
+../Core/Inc/xgb_comm.h:
 
 ../Core/Inc/main.h:
 
@@ -78,12 +81,10 @@ Core/hmi/Src/hmi_draw.o: ../Core/hmi/Src/hmi_draw.c ../Core/Inc/ILI9341.h \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 
-../Core/Inc/hmi.h:
+../Core/hmi/Inc/hmi_draw.h:
 
-../Core/Inc/xgb_comm.h:
+../Core/Inc/ILI9341.h:
 
 ../Core/Inc/main.h:
 
 ../Core/Inc/GFX_COLOR.h:
-
-../Core/hmi/Inc/hmi_draw.h:

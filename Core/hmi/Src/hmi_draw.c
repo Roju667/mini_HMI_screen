@@ -5,13 +5,11 @@
  *      Author: ROJEK
  */
 
-#include "ILI9341.h"
 #include "hmi.h"
 #include "main.h"
 #include "stdbool.h"
 #include "stdio.h"
 #include "string.h"
-#include "GFX_COLOR.h"
 #include "hmi_draw.h"
 
 // Title tile
@@ -54,25 +52,7 @@
 #define STD_SW_LEFT_LIMIT 150
 #define STD_SW_RIGHT_LIMIT 314
 
-static const edit_option_t fun_switch[] = {{"<READ>", 0}, {"<WRITE>", 0}};
 
-static const edit_option_t device_switch[] = {
-    {"<P>", XGB_DEV_TYPE_P}, {"<M>", XGB_DEV_TYPE_M}, {"<K>", XGB_DEV_TYPE_K},
-    {"<F>", XGB_DEV_TYPE_F}, {"<T>", XGB_DEV_TYPE_T}, {"<C>", XGB_DEV_TYPE_C},
-    {"<L>", XGB_DEV_TYPE_L}, {"<N>", XGB_DEV_TYPE_N}, {"<D>", XGB_DEV_TYPE_D},
-    {"<U>", XGB_DEV_TYPE_U}, {"<Z>", XGB_DEV_TYPE_Z}, {"<R>", XGB_DEV_TYPE_R}};
-
-static const edit_option_t size_switch[] = {{"<BIT>", XGB_DATA_SIZE_BIT},
-                                            {"<BYTE>", XGB_DATA_SIZE_BYTE},
-                                            {"<WORD>", XGB_DATA_SIZE_WORD},
-                                            {"<DWORD>", XGB_DATA_SIZE_DWORD},
-                                            {"<LWORD>", XGB_DATA_SIZE_LWORD}};
-
-// place holder (std switches are in places [1][2][3])
-static const edit_option_t null_switch[] = {};
-
-static const edit_option_t *std_switch[] = {null_switch, fun_switch,
-                                            device_switch, size_switch};
 
 static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
                                          uint32_t right_border);
@@ -217,7 +197,7 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
       ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   // offset for next letter
-  x_pos = x_pos + (p_cursors->pos_address * (FONT_WIDTH + FONT_SPACE));
+  x_pos = x_pos + (p_cursors->horiz_address * (FONT_WIDTH + FONT_SPACE));
 
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_ADDRESS) +
                    TEXT_Y_OFFSET;
@@ -225,7 +205,7 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
   GFX_DrawFillRectangle(x_pos, y_pos, FONT_WIDTH, FONT_HEIGHT,
                         HMI_EDIT_MENU_COLOR);
 
-  GFX_DrawChar(x_pos, y_pos, p_cursors->pos_address_num + '0', HMI_TEXT_COLOR);
+  GFX_DrawChar(x_pos, y_pos, p_cursors->vert_address_num  + '0', HMI_TEXT_COLOR);
 
   return;
 }
@@ -241,7 +221,7 @@ void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
   ;
 
   uint32_t x_offset = ((strlen("Confirm - ") * (FONT_WIDTH + FONT_SPACE))) *
-                      p_cursors->pos_exit;
+                      p_cursors->horiz_exit;
 
   x_pos = x_pos + x_offset;
 
@@ -263,7 +243,7 @@ void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
       ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   // offset for next letter
-  x_pos = x_pos + (p_cursors->pos_address * (FONT_WIDTH + FONT_SPACE));
+  x_pos = x_pos + (p_cursors->horiz_address * (FONT_WIDTH + FONT_SPACE));
 
   // position of character
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_ADDRESS) +
@@ -297,23 +277,23 @@ void draw_update_tile_number(char number)
   return;
 }
 
-void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors)
+void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_option_t **p_std_switch)
 {
-  uint32_t std_switch_number = p_cursors->pos_tile;
+  uint32_t std_switch_number = p_cursors->vert_tile;
 
   // select switch cursor depending on tile cursor
   uint32_t switch_cursor = ut_get_switch_cursor(p_cursors);
 
   uint32_t lenght_to_erase =
-      strlen(std_switch[std_switch_number][switch_cursor].display_text) *
+      strlen(p_std_switch[std_switch_number][switch_cursor].display_text) *
       (FONT_WIDTH + FONT_SPACE);
 
   uint32_t x_pos = ut_find_x_to_center_text(
-      std_switch[std_switch_number][switch_cursor].display_text,
+		  p_std_switch[std_switch_number][switch_cursor].display_text,
       STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos =
-      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * p_cursors->pos_tile) +
+      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * p_cursors->vert_tile) +
       TEXT_Y_OFFSET;
 
   // clear text
@@ -324,13 +304,13 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors)
 }
 
 void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
-                         uint8_t switch_number)
+                         uint8_t switch_number,const edit_option_t **p_std_switch)
 {
   // select switch cursor depending on tile cursor
   uint32_t switch_cursor = ut_get_switch_cursor(p_cursors);
 
   uint32_t x_pos = ut_find_x_to_center_text(
-      std_switch[switch_number][switch_cursor].display_text, STD_SW_LEFT_LIMIT,
+		  p_std_switch[switch_number][switch_cursor].display_text, STD_SW_LEFT_LIMIT,
       STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * switch_number) +
@@ -338,18 +318,18 @@ void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
 
   // select a text from an array of arrays of strings (std_switch)
   GFX_DrawString(x_pos, y_pos,
-                 std_switch[switch_number][switch_cursor].display_text,
+		  p_std_switch[switch_number][switch_cursor].display_text,
                  HMI_TEXT_COLOR);
 
   return;
 }
 
-void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors)
+void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch)
 {
   // standard switches
   for (uint8_t i = TILE_FUNCTION; i < TILE_ADDRESS; i++)
     {
-      draw_std_switch_txt(p_cursors, i);
+      draw_std_switch_txt(p_cursors, i,p_std_switch);
     }
 
   // address switch
@@ -379,16 +359,16 @@ static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
 static uint32_t ut_get_switch_cursor(const hmi_edit_cursors_t *p_cursors)
 {
   uint32_t position = 0;
-  switch (p_cursors->pos_tile)
+  switch (p_cursors->vert_tile)
     {
     case (TILE_FUNCTION):
-      position = p_cursors->pos_fun;
+      position = p_cursors->horiz_fun;
       break;
     case (TILE_DEVICE):
-      position = p_cursors->pos_dev;
+      position = p_cursors->horiz_dev;
       break;
     case (TILE_SIZE):
-      position = p_cursors->pos_size;
+      position = p_cursors->horiz_size;
       break;
     case (TILE_HEADER):
     case (TILE_ADDRESS):
