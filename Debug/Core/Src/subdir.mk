@@ -10,7 +10,6 @@ C_SRCS += \
 ../Core/Src/ILI9341.c \
 ../Core/Src/dma.c \
 ../Core/Src/gpio.c \
-../Core/Src/hmi.c \
 ../Core/Src/main.c \
 ../Core/Src/ringbuffer.c \
 ../Core/Src/spi.c \
@@ -19,8 +18,7 @@ C_SRCS += \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
 ../Core/Src/system_stm32f1xx.c \
-../Core/Src/usart.c \
-../Core/Src/xgb_comm.c 
+../Core/Src/usart.c 
 
 OBJS += \
 ./Core/Src/5buttons.o \
@@ -28,7 +26,6 @@ OBJS += \
 ./Core/Src/ILI9341.o \
 ./Core/Src/dma.o \
 ./Core/Src/gpio.o \
-./Core/Src/hmi.o \
 ./Core/Src/main.o \
 ./Core/Src/ringbuffer.o \
 ./Core/Src/spi.o \
@@ -37,8 +34,7 @@ OBJS += \
 ./Core/Src/syscalls.o \
 ./Core/Src/sysmem.o \
 ./Core/Src/system_stm32f1xx.o \
-./Core/Src/usart.o \
-./Core/Src/xgb_comm.o 
+./Core/Src/usart.o 
 
 C_DEPS += \
 ./Core/Src/5buttons.d \
@@ -46,7 +42,6 @@ C_DEPS += \
 ./Core/Src/ILI9341.d \
 ./Core/Src/dma.d \
 ./Core/Src/gpio.d \
-./Core/Src/hmi.d \
 ./Core/Src/main.d \
 ./Core/Src/ringbuffer.d \
 ./Core/Src/spi.d \
@@ -55,8 +50,7 @@ C_DEPS += \
 ./Core/Src/syscalls.d \
 ./Core/Src/sysmem.d \
 ./Core/Src/system_stm32f1xx.d \
-./Core/Src/usart.d \
-./Core/Src/xgb_comm.d 
+./Core/Src/usart.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

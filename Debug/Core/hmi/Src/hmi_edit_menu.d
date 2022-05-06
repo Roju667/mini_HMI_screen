@@ -1,5 +1,5 @@
 Core/hmi/Src/hmi_edit_menu.o: ../Core/hmi/Src/hmi_edit_menu.c \
- ../Core/Inc/5buttons.h ../Core/Inc/hmi.h ../Core/Inc/xgb_comm.h \
+ ../Core/Inc/5buttons.h ../Core/hmi/Inc/hmi.h ../Core/hmi/Inc/xgb_comm.h \
  ../Core/hmi/Inc/hmi_draw.h ../Core/Inc/ILI9341.h ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
@@ -29,9 +29,9 @@ Core/hmi/Src/hmi_edit_menu.o: ../Core/hmi/Src/hmi_edit_menu.c \
 
 ../Core/Inc/5buttons.h:
 
-../Core/Inc/hmi.h:
+../Core/hmi/Inc/hmi.h:
 
-../Core/Inc/xgb_comm.h:
+../Core/hmi/Inc/xgb_comm.h:
 
 ../Core/hmi/Inc/hmi_draw.h:
 

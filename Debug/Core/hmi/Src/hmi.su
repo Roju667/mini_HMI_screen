@@ -1,0 +1,12 @@
+hmi.c:47:6:hmi_main	8	static
+hmi.c:98:6:HAL_UARTEx_RxEventCallback	16	static
+hmi.c:106:13:mm_update_tile_cursor_pos	16	static
+hmi.c:135:13:mm_change_tile_cursor_pos	16	static
+hmi.c:147:28:mm_check_pending_flags	16	static
+hmi.c:176:13:main_menu_active	16	static
+hmi.c:201:13:init_read_eeprom	4	static
+hmi.c:204:13:init_tft	8	static
+hmi.c:213:13:init_main_menu	8	static
+hmi.c:221:13:init_edit_menu	8	static
+hmi.c:228:13:edit_menu_active	8	static
+hmi.c:238:13:hmi_read_tile_function	24	static

@@ -1,5 +1,6 @@
-Core/Src/xgb_comm.o: ../Core/Src/xgb_comm.c ../Core/Inc/xgb_comm.h \
- ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
+Core/hmi/Src/xgb_comm.o: ../Core/hmi/Src/xgb_comm.c \
+ ../Core/hmi/Inc/xgb_comm.h ../Core/Inc/main.h \
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h \
@@ -24,7 +25,7 @@ Core/Src/xgb_comm.o: ../Core/Src/xgb_comm.c ../Core/Inc/xgb_comm.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 
-../Core/Inc/xgb_comm.h:
+../Core/hmi/Inc/xgb_comm.h:
 
 ../Core/Inc/main.h:
 

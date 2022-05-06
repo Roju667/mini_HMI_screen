@@ -16,7 +16,7 @@ extern UART_HandleTypeDef huart1;
 /*
  * Basic send frame function, uart transmit function
  */
-static uint8_t send_frame(const uint8_t *p_frame, const uint8_t lenght)
+static uint8_t send_frame(const uint8_t *p_frame, uint8_t lenght)
 {
   if ((HAL_UART_Transmit(&huart1, (uint8_t *)p_frame, lenght, 1000) != HAL_OK))
     {
@@ -37,11 +37,11 @@ static uint8_t prepare_frame(const u_frame *raw_frame, u_frame *ready_frame)
   // rewrite it to ready frame
   for (uint8_t i = 0; i < MAX_FRAME_SIZE; i++)
     {
-      if (raw_frame->frame_bytes[i] != 0)
+      if (0 != raw_frame->frame_bytes[i])
         {
           ready_frame->frame_bytes[j] = raw_frame->frame_bytes[i];
 
-          if (raw_frame->frame_bytes[i] == XGB_CC_EOT) // if its EOT
+          if (XGB_CC_EOT == raw_frame->frame_bytes[i]) // if its EOT
             {
               // finish the message with NULL to create a string
               ready_frame->frame_bytes[j + 1] = 0; // NULL
@@ -60,7 +60,6 @@ static uint8_t prepare_frame(const u_frame *raw_frame, u_frame *ready_frame)
 static int8_t prepare_individual_read_frame(u_frame *frame,
                                             const cmd_frame_data *p_frame_data)
 {
-  // prepare message - fill union with 0s
   u_frame temp_frame = {0};
 
   // header
@@ -294,20 +293,21 @@ static int8_t prepare_continuous_write_frame(u_frame *frame,
  */
 uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data)
 {
+  uint8_t status = XGB_OK;
   u_frame frame;
 
-  if (prepare_individual_read_frame(&frame, p_frame_data) != XGB_OK)
+  if (XGB_OK != prepare_individual_read_frame(&frame, p_frame_data))
     {
-      return XGB_ERR_EOT_MISSING;
+      status = XGB_ERR_EOT_MISSING;
     }
 
-  if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+  if (XGB_OK !=
+      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
     {
-      return XGB_ERR_TRANSMIT_TIMEOUT;
+      status = XGB_ERR_TRANSMIT_TIMEOUT;
     }
 
-  return XGB_OK;
+  return status;
 }
 
 /*
@@ -315,19 +315,21 @@ uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data)
  */
 uint8_t xgb_send_individual_write_cmd(const cmd_frame_data *p_frame_data)
 {
+
+  uint8_t status = XGB_OK;
   u_frame frame;
 
-  if (prepare_individual_write_frame(&frame, p_frame_data) != XGB_OK)
+  if (XGB_OK != prepare_individual_write_frame(&frame, p_frame_data))
     {
-      return XGB_ERR_EOT_MISSING;
+      status = XGB_ERR_EOT_MISSING;
     }
 
-  if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+  if (XGB_OK !=
+      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
     {
-      return XGB_ERR_TRANSMIT_TIMEOUT;
+      status = XGB_ERR_TRANSMIT_TIMEOUT;
     }
-  return XGB_OK;
+  return status;
 }
 
 /*
@@ -335,20 +337,21 @@ uint8_t xgb_send_individual_write_cmd(const cmd_frame_data *p_frame_data)
  */
 uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data)
 {
+  uint8_t status = XGB_OK;
   u_frame frame;
 
-  if (prepare_continuous_read_frame(&frame, p_frame_data) != XGB_OK)
+  if (XGB_OK != prepare_continuous_read_frame(&frame, p_frame_data))
     {
-      return XGB_ERR_EOT_MISSING;
+      status = XGB_ERR_EOT_MISSING;
     }
 
-  if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+  if (XGB_OK !=
+      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
     {
-      return XGB_ERR_TRANSMIT_TIMEOUT;
+      status = XGB_ERR_TRANSMIT_TIMEOUT;
     }
 
-  return XGB_OK;
+  return status;
 }
 
 /*
@@ -356,20 +359,21 @@ uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data)
  */
 uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data)
 {
+  uint8_t status = XGB_OK;
   u_frame frame;
 
-  if (prepare_continuous_write_frame(&frame, p_frame_data) != XGB_OK)
+  if (XGB_OK != prepare_continuous_write_frame(&frame, p_frame_data))
     {
-      return XGB_ERR_EOT_MISSING;
+      status = XGB_ERR_EOT_MISSING;
     }
 
-  if (send_frame((uint8_t *)&frame,
-                 (const uint8_t)strlen((char *)frame.frame_bytes)) != XGB_OK)
+  if (XGB_OK !=
+      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
     {
-      return XGB_ERR_TRANSMIT_TIMEOUT;
+      status = XGB_ERR_TRANSMIT_TIMEOUT;
     }
 
-  return XGB_OK;
+  return status;
 }
 
 /*
