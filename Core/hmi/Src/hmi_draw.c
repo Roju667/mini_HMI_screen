@@ -160,7 +160,7 @@ void draw_edit_menu(uint8_t active_main_tile)
 
   draw_wide_tile(tile_text[TILE_HEADER], TILE_HEADER, true, HMI_TILE_COLOR);
 
-  for (uint8_t i = TILE_FUNCTION; i < TILE_ADDRESS; i++)
+  for (uint8_t i = TILE_FUNCTION; i < TILE_EXIT; i++)
     {
       draw_wide_tile(tile_text[i], i, false, HMI_TILE_COLOR);
     }
@@ -261,7 +261,7 @@ void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
 void draw_update_tile_number(char number)
 {
   uint32_t x_pos =
-      ut_find_x_to_center_text("TILE NUMBER ", OFFSET_X_LEFT_BORDER,
+      ut_find_x_to_center_text("TILE NUMBER  ", OFFSET_X_LEFT_BORDER,
                                (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
 
   x_pos = x_pos + strlen("TILE NUMBER ") * (FONT_WIDTH + FONT_SPACE);
