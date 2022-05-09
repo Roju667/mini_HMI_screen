@@ -92,7 +92,7 @@ static xgb_comm_err_t prep_frame(const u_frame *raw_frame, u_frame *ready_frame)
 
   // go trough array and if cell is not empty
   // rewrite it to ready frame
-  for (uint8_t i = 0; i < MAX_FRAME_SIZE; i++)
+  for (uint16_t i = 0; i < MAX_FRAME_SIZE; i++)
     {
       if (0 != raw_frame->frame_bytes[i])
         {

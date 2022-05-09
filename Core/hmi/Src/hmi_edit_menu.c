@@ -104,6 +104,7 @@ hmi_change_screen_t em_active_screen(hmi_main_screen_t *p_main_screen_data)
           if (SAVE_DATA_TO_TILE == ret_action)
             {
         	  save_data_to_tile(p_main_screen_data);
+                  ret_action = OPEN_MAIN_MENU;
             }
           break;
         }
@@ -400,7 +401,7 @@ static hmi_change_screen_t action_if_enter_pressed(buttons_state_t pending_flag)
 
   hmi_change_screen_t ret_action = NO_CHANGE;
 
-  switch (pending_flag)
+  switch (edit_menu_cursors.vert_tile)
     {
     case (TILE_ADDRESS):
       {

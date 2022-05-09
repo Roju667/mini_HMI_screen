@@ -21,7 +21,7 @@
 
 #define SWITCH_SCREEN 1U
 
-#define RETURN_FRAME_TIMEOUT 1000
+#define RETURN_FRAME_TIMEOUT 50
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
@@ -206,6 +206,10 @@ static void init_tft(void)
   ILI9341_Init(&hspi1);
   GFX_SetFont(font_8x5);
   hmi_state = INIT_MAIN_MENU;
+  for (uint8_t i = 0; i < 10; i++)
+    {
+      main_screen_data.buttons[i].callback = NULL;
+    }
 
   return;
 }
@@ -258,11 +262,11 @@ void hmi_read_tile_function(const struct tile_data *p_data)
 
   if (true == timeout_error)
     {
-      draw_small_tile(p_data->tile_number);
+      draw_small_tile(p_data->tile_number, "TIMEOUT", true);
     }
   else
     {
-      draw_small_tile(p_data->tile_number);
+      draw_small_tile(p_data->tile_number, "DATA", false);
     }
 
   return;

@@ -13,8 +13,8 @@
 #include "hmi_draw.h"
 
 // Title tile
-#define TITLE_TILE_WIDTH 314U
-#define TITLE_TILE_HEIGHT 27U
+#define WIDE_TILE_WIDTH 314U
+#define WIDE_TILE_HEIGHT 27U
 
 // Gaps
 #define GAP_Y_BETWEEN_TILES 1U
@@ -22,21 +22,21 @@
 #define OFFSET_X_LEFT_BORDER 3U
 
 // Standard tile
-#define TILE_WIDTH 155U
-#define TILE_HEIGHT 40U
+#define SMALL_TILE_WIDTH 155U
+#define SMALL_TILE_HEIGHT 40U
 
 // Size of line
 #define LINE_SIZE 1U
 
 // Distance in Y from the top to the first tile
 #define OFFSET_Y_FIRST_TILE                                                    \
-  (GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT + GAP_Y_BETWEEN_TILES)
+  (GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT + GAP_Y_BETWEEN_TILES)
 
 // Distance in X from the left side to start of second column tile
-#define OFFSET_X_SECOND_COLUMN (TILE_WIDTH + GAP_X_BETWEEN_COLUMNS)
+#define OFFSET_X_SECOND_COLUMN (SMALL_TILE_WIDTH + GAP_X_BETWEEN_COLUMNS)
 
 // Distance in Y between start of one tile to next tile
-#define DISTANCE_Y_BETWEEN_TILES (TILE_HEIGHT + GAP_Y_BETWEEN_TILES)
+#define DISTANCE_Y_BETWEEN_TILES (SMALL_TILE_HEIGHT + GAP_Y_BETWEEN_TILES)
 
 // Top of the pointer
 #define OFFSET_X_CURSOR_POINTER 20U
@@ -45,8 +45,9 @@
 #define FONT_WIDTH 5U
 #define FONT_SPACE 1U
 #define FONT_HEIGHT 8U
-#define TEXT_X_OFFSET 10U
-#define TEXT_Y_OFFSET 10U
+#define TEXT_X_OFFSET_WIDE_TILE 10U
+#define TEXT_Y_OFFSET_WIDE_TILE 10U
+#define TEXT_X_OFFSET_SMALL_TILE 18U
 
 // Standard switch limits
 #define STD_SW_LEFT_LIMIT 150
@@ -59,10 +60,13 @@ static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
 
 static uint32_t ut_get_switch_cursor(const hmi_edit_cursors_t *p_cursors);
 
+static void draw_small_tile_text(uint8_t tile_number, const char *text,
+                                 bool center_text);
+
 /*** DRAW FUNCTIONS **/
 
 // Draw main menu tile
-void draw_small_tile(uint8_t tile_number)
+void draw_small_tile(uint8_t tile_number, const char *text, bool center_text)
 {
   uint8_t column = tile_number / 5;
   uint8_t row = tile_number % 5;
@@ -70,7 +74,10 @@ void draw_small_tile(uint8_t tile_number)
   uint32_t x_pos = (column * OFFSET_X_SECOND_COLUMN) + OFFSET_X_LEFT_BORDER;
   uint32_t y_pos = (row * DISTANCE_Y_BETWEEN_TILES) + OFFSET_Y_FIRST_TILE;
 
-  GFX_DrawRectangle(x_pos, y_pos, TILE_WIDTH, TILE_HEIGHT, HMI_TILE_COLOR);
+  GFX_DrawRectangle(x_pos, y_pos, SMALL_TILE_WIDTH, SMALL_TILE_HEIGHT,
+                    HMI_TILE_COLOR);
+
+  draw_small_tile_text(tile_number, text, center_text);
   return;
 }
 
@@ -79,18 +86,51 @@ void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
                     ColorType color)
 {
   GFX_DrawRectangle(OFFSET_X_LEFT_BORDER,
-                    (GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * tile_number,
-                    TITLE_TILE_WIDTH, TITLE_TILE_HEIGHT, color);
+                    (GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * tile_number,
+                    WIDE_TILE_WIDTH, WIDE_TILE_HEIGHT, color);
 
-  uint32_t x_pos = TEXT_X_OFFSET;
-  uint32_t y_pos =
-      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * tile_number) + TEXT_Y_OFFSET;
+  uint32_t x_pos = TEXT_X_OFFSET_WIDE_TILE;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * tile_number) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   if (center_text == true)
     {
       x_pos =
           ut_find_x_to_center_text(text, OFFSET_X_LEFT_BORDER,
                                    (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+    }
+
+  if (NULL != text)
+    {
+      GFX_DrawString(x_pos, y_pos, text, HMI_TEXT_COLOR);
+    }
+
+  return;
+}
+
+static void draw_small_tile_text(uint8_t tile_number, const char *text,
+                                 bool center_text)
+{
+  uint8_t column = tile_number / 5;
+  uint8_t row = tile_number % 5;
+
+  uint32_t x_pos_left_border = (column * OFFSET_X_SECOND_COLUMN) +
+                               OFFSET_X_LEFT_BORDER + OFFSET_X_CURSOR_POINTER;
+  uint32_t x_pos_right_border = (column * OFFSET_X_SECOND_COLUMN) +
+                                OFFSET_X_LEFT_BORDER + SMALL_TILE_WIDTH;
+  uint32_t x_pos = 0;
+
+  uint32_t y_pos = (row * DISTANCE_Y_BETWEEN_TILES) + OFFSET_Y_FIRST_TILE +
+                   TEXT_X_OFFSET_SMALL_TILE;
+
+  if (true == center_text)
+    {
+      x_pos =
+          ut_find_x_to_center_text(text, x_pos_left_border, x_pos_right_border);
+    }
+  else
+    {
+      x_pos = x_pos_left_border + 1;
     }
 
   if (NULL != text)
@@ -118,13 +158,13 @@ void draw_mm_cursor(ColorType color, uint8_t active_tile)
   uint32_t x1_pos =
       (column * OFFSET_X_SECOND_COLUMN) + LINE_SIZE + OFFSET_X_LEFT_BORDER;
   uint32_t y1_pos = (row * DISTANCE_Y_BETWEEN_TILES) + OFFSET_Y_FIRST_TILE +
-                    TILE_HEIGHT - LINE_SIZE;
+                    SMALL_TILE_HEIGHT - LINE_SIZE;
 
   uint32_t x2_pos = (column * OFFSET_X_SECOND_COLUMN) + OFFSET_X_LEFT_BORDER +
                     OFFSET_X_CURSOR_POINTER;
 
   uint32_t y2_pos = (row * DISTANCE_Y_BETWEEN_TILES) + OFFSET_Y_FIRST_TILE +
-                    (TILE_HEIGHT / 2);
+                    (SMALL_TILE_HEIGHT / 2);
 
   GFX_DrawFillTriangle(x0_pos, y0_pos, x1_pos, y1_pos, x2_pos, y2_pos, color);
 
@@ -138,7 +178,7 @@ void draw_main_screen(uint8_t active_tile)
   draw_wide_tile("XGB PLC COMMUNICATION", 0, true, HMI_TILE_COLOR);
   for (uint8_t i = 0; i < 10; i++)
     {
-      draw_small_tile(i);
+      draw_small_tile(i, NULL, false);
     }
 
   draw_mm_cursor(ILI9341_DARKCYAN, active_tile);
@@ -178,8 +218,8 @@ void draw_arrows_icon(ColorType color)
 
   x_pos = x_pos + (8 * (FONT_WIDTH + FONT_SPACE));
 
-  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_ADDRESS) +
-                   TEXT_Y_OFFSET;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_ADDRESS) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   // draw 2 arrows
   GFX_DrawFillTriangle(x_pos, y_pos - 1, x_pos - 4, y_pos + 3, x_pos + 4,
@@ -199,8 +239,8 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
   // offset for next letter
   x_pos = x_pos + (p_cursors->horiz_address * (FONT_WIDTH + FONT_SPACE));
 
-  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_ADDRESS) +
-                   TEXT_Y_OFFSET;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_ADDRESS) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   GFX_DrawFillRectangle(x_pos, y_pos, FONT_WIDTH, FONT_HEIGHT,
                         HMI_EDIT_MENU_COLOR);
@@ -225,8 +265,8 @@ void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
 
   x_pos = x_pos + x_offset;
 
-  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_EXIT) +
-                   TEXT_Y_OFFSET + (FONT_HEIGHT + FONT_SPACE);
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_EXIT) +
+                   TEXT_Y_OFFSET_WIDE_TILE + (FONT_HEIGHT + FONT_SPACE);
 
   uint32_t len = strlen("Confirm") * (FONT_WIDTH + FONT_SPACE);
 
@@ -246,8 +286,8 @@ void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
   x_pos = x_pos + (p_cursors->horiz_address * (FONT_WIDTH + FONT_SPACE));
 
   // position of character
-  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_ADDRESS) +
-                   TEXT_Y_OFFSET;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_ADDRESS) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   // move it below characater
   y_pos = y_pos + FONT_HEIGHT + 1;
@@ -266,8 +306,8 @@ void draw_update_tile_number(char number)
 
   x_pos = x_pos + strlen("TILE NUMBER ") * (FONT_WIDTH + FONT_SPACE);
 
-  uint32_t y_pos =
-      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_HEADER) + TEXT_Y_OFFSET;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_HEADER) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   GFX_DrawFillRectangle(x_pos, y_pos, FONT_WIDTH, FONT_HEIGHT,
                         HMI_EDIT_MENU_COLOR);
@@ -293,8 +333,8 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_o
       STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos =
-      ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * p_cursors->vert_tile) +
-      TEXT_Y_OFFSET;
+      ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * p_cursors->vert_tile) +
+      TEXT_Y_OFFSET_WIDE_TILE;
 
   // clear text
   GFX_DrawFillRectangle(x_pos, y_pos, lenght_to_erase, FONT_HEIGHT,
@@ -313,8 +353,8 @@ void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
 		  p_std_switch[switch_number][switch_cursor].display_text, STD_SW_LEFT_LIMIT,
       STD_SW_RIGHT_LIMIT);
   ;
-  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * switch_number) +
-                   TEXT_Y_OFFSET;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * switch_number) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   // select a text from an array of arrays of strings (std_switch)
   GFX_DrawString(x_pos, y_pos,
@@ -336,8 +376,8 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
   uint32_t x_pos =
       ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
-  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + TITLE_TILE_HEIGHT) * TILE_ADDRESS) +
-                   TEXT_Y_OFFSET;
+  uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_ADDRESS) +
+                   TEXT_Y_OFFSET_WIDE_TILE;
 
   GFX_DrawString(x_pos, y_pos, "000000", HMI_TEXT_COLOR);
 

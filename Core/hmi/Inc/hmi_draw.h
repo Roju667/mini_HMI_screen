@@ -12,7 +12,7 @@
 #define HMI_EDIT_MENU_COLOR ILI9341_DARKCYAN
 #define HMI_HIGHLIGHT_TILE_COLOR ILI9341_RED
 
-void draw_small_tile(const uint8_t tile_number);
+void draw_small_tile(uint8_t tile_number, const char *text, bool center_text);
 void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
                     ColorType color);
 void draw_mm_cursor(ColorType color, uint8_t active_tile);

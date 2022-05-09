@@ -5,8 +5,8 @@ hmi.c:135:13:mm_change_tile_cursor_pos	16	static
 hmi.c:147:28:mm_check_pending_flags	16	static
 hmi.c:176:13:main_menu_active	16	static
 hmi.c:201:13:init_read_eeprom	4	static
-hmi.c:204:13:init_tft	8	static
-hmi.c:213:13:init_main_menu	8	static
-hmi.c:221:13:init_edit_menu	8	static
-hmi.c:228:13:edit_menu_active	8	static
-hmi.c:238:6:hmi_read_tile_function	24	static
+hmi.c:204:13:init_tft	16	static
+hmi.c:217:13:init_main_menu	8	static
+hmi.c:225:13:init_edit_menu	8	static
+hmi.c:232:13:edit_menu_active	8	static
+hmi.c:242:6:hmi_read_tile_function	24	static
