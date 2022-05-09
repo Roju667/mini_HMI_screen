@@ -11,27 +11,84 @@
 #include "stdio.h"
 #include "string.h"
 
+typedef xgb_comm_err_t (*prep_frame_fun_t)(u_frame *frame,
+                                           const cmd_frame_data *p_frame_data);
+
+typedef enum prep_frame
+{
+  INDIVI_READ = 0,
+  CONT_READ = 1,
+  INDIVI_WRITE = 2,
+  CONT_WRITE = 3
+} prep_frame_ID;
+
+typedef struct prep_fun_mapper
+{
+  prep_frame_ID ID;
+  prep_frame_fun_t function;
+} prep_fun_mapper_t;
+
 extern UART_HandleTypeDef huart1;
+
+// basic
+static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint8_t lenght);
+static xgb_comm_err_t prep_frame(const u_frame *raw_frame,
+                                 u_frame *ready_frame);
+
+// specific frame prep
+static xgb_comm_err_t
+prep_indivi_read_frame(u_frame *frame, const cmd_frame_data *p_frame_data);
+static xgb_comm_err_t prep_cont_read_frame(u_frame *frame,
+                                           const cmd_frame_data *p_frame_data);
+static xgb_comm_err_t
+prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data);
+static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
+                                            const cmd_frame_data *p_frame_data);
+// send specific frame
+static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,prep_frame_ID ID);
+// utility
+static uint8_t data_marking_to_size(xgb_data_size_marking_t data_size);
+
+xgb_comm_err_t xgb_read_single_device(const xgb_device_type_t type,
+                                      const xgb_data_size_marking_t size_mark,
+                                      const char *address)
+{
+  cmd_frame_data frame = {0};
+  xgb_comm_err_t comm_status = XGB_OK;
+
+  frame.ind_read.data_size = size_mark;
+  frame.ind_read.device_type = type;
+  frame.ind_read.no_of_blocks = 1;
+  frame.ind_read.p_device_address = address;
+  frame.ind_read.station_number = STATION_NUMBER;
+
+  comm_status = send_specific_cmd(&frame,INDIVI_READ);
+
+  return comm_status;
+}
 
 /*
  * Basic send frame function, uart transmit function
  */
-static uint8_t send_frame(const uint8_t *p_frame, uint8_t lenght)
+static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint8_t lenght)
 {
+  xgb_comm_err_t comm_status = XGB_OK;
+
   if ((HAL_UART_Transmit(&huart1, (uint8_t *)p_frame, lenght, 1000) != HAL_OK))
     {
-      return XGB_ERR_TRANSMIT_TIMEOUT;
+      comm_status = XGB_ERR_TRANSMIT_TIMEOUT;
     }
 
-  return XGB_OK;
+  return comm_status;
 }
 
 /*
  * Delete all the empty spaces between parts of frame and add NULL at the end
  */
-static uint8_t prepare_frame(const u_frame *raw_frame, u_frame *ready_frame)
+static xgb_comm_err_t prep_frame(const u_frame *raw_frame, u_frame *ready_frame)
 {
   uint8_t j = 0;
+  xgb_comm_err_t comm_status = XGB_ERR_EOT_MISSING;
 
   // go trough array and if cell is not empty
   // rewrite it to ready frame
@@ -45,22 +102,24 @@ static uint8_t prepare_frame(const u_frame *raw_frame, u_frame *ready_frame)
             {
               // finish the message with NULL to create a string
               ready_frame->frame_bytes[j + 1] = 0; // NULL
-              return XGB_OK;
+              comm_status = XGB_OK;
             }
 
           j++;
         }
     }
-  return XGB_ERR_EOT_MISSING;
+
+  return comm_status;
 }
 
 /*
  * Prepare frame - request of individual read
  */
-static int8_t prepare_individual_read_frame(u_frame *frame,
-                                            const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_indivi_read_frame(u_frame *frame,
+                                             const cmd_frame_data *p_frame_data)
 {
   u_frame temp_frame = {0};
+  xgb_comm_err_t comm_status = XGB_OK;
 
   // header
   temp_frame.ind_read_frame.header_enq = XGB_CC_ENQ;
@@ -102,17 +161,20 @@ static int8_t prepare_individual_read_frame(u_frame *frame,
   temp_frame.ind_read_frame.tail_eot = XGB_CC_EOT;
 
   // prepare message
-  return prepare_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, frame);
+  return comm_status;
 }
 
 /*
  * Prepare frame - request of individual write
  */
-static int8_t prepare_individual_write_frame(u_frame *frame,
-                                             const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t
+prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data)
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
+  xgb_comm_err_t comm_status = XGB_OK;
+  ;
 
   // header
   temp_frame.ind_write_frame.header_enq = XGB_CC_ENQ;
@@ -165,14 +227,14 @@ static int8_t prepare_individual_write_frame(u_frame *frame,
 
   temp_frame.ind_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
-  return prepare_frame(&temp_frame, frame);
+  return prep_frame(&temp_frame, frame);
 }
 
 /*
  * Prepare frame - request of continuous read
  */
-static int8_t prepare_continuous_read_frame(u_frame *frame,
-                                            const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_cont_read_frame(u_frame *frame,
+                                           const cmd_frame_data *p_frame_data)
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
@@ -217,14 +279,14 @@ static int8_t prepare_continuous_read_frame(u_frame *frame,
   temp_frame.cont_read_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
-  return prepare_frame(&temp_frame, frame);
+  return prep_frame(&temp_frame, frame);
 }
 
 /*
  * Prepare frame - request of continuous write
  */
-static int8_t prepare_continuous_write_frame(u_frame *frame,
-                                             const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
+                                            const cmd_frame_data *p_frame_data)
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
@@ -283,113 +345,66 @@ static int8_t prepare_continuous_write_frame(u_frame *frame,
   temp_frame.cont_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
-  return prepare_frame(&temp_frame, frame);
+  return prep_frame(&temp_frame, frame);
 
   return XGB_ERR_EOT_MISSING;
 }
 
-/*
- * Send request of individual read
- */
-uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data)
+
+static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,prep_frame_ID ID)
 {
-  uint8_t status = XGB_OK;
+
+  const static prep_fun_mapper_t prep_fun_mapper[] = {{INDIVI_READ, prep_indivi_read_frame},
+                                  {CONT_READ, prep_cont_read_frame},
+                                  {INDIVI_WRITE, prep_indivi_write_frame},
+                                  {CONT_WRITE, prep_cont_write_frame}};
+
+  xgb_comm_err_t status = XGB_OK;
   u_frame frame;
 
-  if (XGB_OK != prepare_individual_read_frame(&frame, p_frame_data))
+  if (XGB_OK != prep_fun_mapper[ID].function(&frame, p_frame_data))
     {
       status = XGB_ERR_EOT_MISSING;
-    }
-
-  if (XGB_OK !=
-      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
+    }else
     {
-      status = XGB_ERR_TRANSMIT_TIMEOUT;
+    	  if (XGB_OK !=
+    	      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
+    	    {
+    	      status = XGB_ERR_TRANSMIT_TIMEOUT;
+    	    }
     }
 
   return status;
 }
 
-/*
- * Send request of individual write
- */
-uint8_t xgb_send_individual_write_cmd(const cmd_frame_data *p_frame_data)
+// converts marking to amount of bytes
+static uint8_t data_marking_to_size(xgb_data_size_marking_t data_size)
 {
-
-  uint8_t status = XGB_OK;
-  u_frame frame;
-
-  if (XGB_OK != prepare_individual_write_frame(&frame, p_frame_data))
+  switch (data_size)
     {
-      status = XGB_ERR_EOT_MISSING;
+    case (XGB_DATA_SIZE_BIT):
+      {
+        return 1;
+      }
+    case (XGB_DATA_SIZE_BYTE):
+      {
+        return 1;
+      }
+    case (XGB_DATA_SIZE_WORD):
+      {
+        return 2;
+      }
+    case (XGB_DATA_SIZE_DWORD):
+      {
+        return 4;
+      }
+    case (XGB_DATA_SIZE_LWORD):
+      {
+        return 8;
+      }
+    default:
+      {
+        return 0;
+      }
     }
-
-  if (XGB_OK !=
-      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
-    {
-      status = XGB_ERR_TRANSMIT_TIMEOUT;
-    }
-  return status;
-}
-
-/*
- * Send request of continuous read
- */
-uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data)
-{
-  uint8_t status = XGB_OK;
-  u_frame frame;
-
-  if (XGB_OK != prepare_continuous_read_frame(&frame, p_frame_data))
-    {
-      status = XGB_ERR_EOT_MISSING;
-    }
-
-  if (XGB_OK !=
-      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
-    {
-      status = XGB_ERR_TRANSMIT_TIMEOUT;
-    }
-
-  return status;
-}
-
-/*
- * Send request of continuous write
- */
-uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data)
-{
-  uint8_t status = XGB_OK;
-  u_frame frame;
-
-  if (XGB_OK != prepare_continuous_write_frame(&frame, p_frame_data))
-    {
-      status = XGB_ERR_EOT_MISSING;
-    }
-
-  if (XGB_OK !=
-      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
-    {
-      status = XGB_ERR_TRANSMIT_TIMEOUT;
-    }
-
-  return status;
-}
-
-/*
- *
- */
-uint8_t xgb_read_single_device(const xgb_device_type type,
-                               const xgb_data_size_marking size_mark,
-                               const char *address)
-{
-  cmd_frame_data frame = {0};
-
-  frame.ind_read.data_size = size_mark;
-  frame.ind_read.device_type = type;
-  frame.ind_read.no_of_blocks = 1;
-  frame.ind_read.p_device_address = address;
-  frame.ind_read.station_number = STATION_NUMBER;
-
-  xgb_send_individual_read_cmd(&frame);
 }

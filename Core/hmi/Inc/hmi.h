@@ -36,16 +36,16 @@ typedef enum tile_function
 {
 	READ = 0,
 	WRITE_CONT = 1,
-	WRTIE_SINGLE = 2
+	WRITE_SINGLE = 2
 }tile_function_t;
 
 struct tile_data
 {
   uint8_t tile_number;
   uint8_t function;
-  xgb_device_type device_type;
-  xgb_data_size_marking size_mark;
-  char *address;
+  xgb_device_type_t device_type;
+  xgb_data_size_marking_t size_mark;
+  char address[6];
 };
 
 typedef void (*tile_callback_t)(const struct tile_data *p_data);
@@ -78,7 +78,7 @@ typedef struct hmi_edit_cursors
   cursor vert_address_num;
   cursor horiz_exit;
   char address[6];
-  bool edit_mode_active;
+  bool is_edit_mode_active;
 } hmi_edit_cursors_t;
 
 typedef struct edit_option
@@ -95,5 +95,7 @@ typedef struct hmi_screen
 } hmi_main_screen_t;
 
 void hmi_main(void);
+
+void hmi_read_tile_function(const struct tile_data *p_data);
 
 #endif /* INC_HMI_H_ */

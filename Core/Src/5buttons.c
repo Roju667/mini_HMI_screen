@@ -49,7 +49,7 @@ void set_button_flag(uint16_t GPIO_Pin)
   return;
 }
 
-buttons_state_t buttons_check_flag(void)
+buttons_state_t buttons_get_pending_flag(void)
 {
   buttons_state_t active_button = IDLE;
 

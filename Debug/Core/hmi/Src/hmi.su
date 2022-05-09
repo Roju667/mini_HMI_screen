@@ -9,4 +9,4 @@ hmi.c:204:13:init_tft	8	static
 hmi.c:213:13:init_main_menu	8	static
 hmi.c:221:13:init_edit_menu	8	static
 hmi.c:228:13:edit_menu_active	8	static
-hmi.c:238:13:hmi_read_tile_function	24	static
+hmi.c:238:6:hmi_read_tile_function	24	static

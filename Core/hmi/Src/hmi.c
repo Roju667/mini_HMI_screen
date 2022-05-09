@@ -146,7 +146,7 @@ static void mm_change_tile_cursor_pos(buttons_state_t pending_flag)
 
 static hmi_change_screen_t mm_check_pending_flags(void)
 {
-  buttons_state_t pending_flag = buttons_check_flag();
+  buttons_state_t pending_flag = buttons_get_pending_flag();
 
   hmi_change_screen_t change_screen = NO_CHANGE;
 
@@ -235,7 +235,7 @@ static void edit_menu_active(void)
   return;
 }
 
-static void hmi_read_tile_function(const struct tile_data *p_data)
+void hmi_read_tile_function(const struct tile_data *p_data)
 {
   // read on DMA
   frame_returned = false;

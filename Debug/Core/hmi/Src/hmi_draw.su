@@ -11,5 +11,5 @@ hmi_draw.c:261:6:draw_update_tile_number	32	static
 hmi_draw.c:280:6:draw_erase_std_switch_txt	48	static
 hmi_draw.c:306:6:draw_std_switch_txt	40	static
 hmi_draw.c:327:6:draw_cursor_initial_values	32	static
-hmi_draw.c:349:17:ut_find_x_to_center_text	40	static
-hmi_draw.c:359:17:ut_get_switch_cursor	24	static
+hmi_draw.c:353:17:ut_find_x_to_center_text	40	static
+hmi_draw.c:363:17:ut_get_switch_cursor	24	static

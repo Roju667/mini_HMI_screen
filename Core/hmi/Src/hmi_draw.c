@@ -341,6 +341,10 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
 
   GFX_DrawString(x_pos, y_pos, "000000", HMI_TEXT_COLOR);
 
+  // tile selection cursor
+  draw_wide_tile(NULL, TILE_HEADER, false,
+                 HMI_HIGHLIGHT_TILE_COLOR);
+
   return;
 }
 

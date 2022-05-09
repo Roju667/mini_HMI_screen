@@ -29,7 +29,7 @@ typedef struct button_flags
   bool enter_flag;
 } button_flags_t;
 
-buttons_state_t buttons_check_flag(void);
+buttons_state_t buttons_get_pending_flag(void);
 void buttons_reset_flag(buttons_state_t state_flag);
 
 #endif /* INC_5BUTTONS_H_ */

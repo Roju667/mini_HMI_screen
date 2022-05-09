@@ -52,7 +52,7 @@ typedef enum xgb_data_size_marking {
   XGB_DATA_SIZE_WORD = 'W',
   XGB_DATA_SIZE_DWORD = 'D',
   XGB_DATA_SIZE_LWORD = 'L'
-} xgb_data_size_marking;
+} xgb_data_size_marking_t;
 
 typedef enum xgb_device_type {
   XGB_DEV_TYPE_P = 'P',
@@ -67,14 +67,14 @@ typedef enum xgb_device_type {
   XGB_DEV_TYPE_U = 'U',
   XGB_DEV_TYPE_Z = 'Z',
   XGB_DEV_TYPE_R = 'R'
-} xgb_device_type;
+} xgb_device_type_t;
 
-enum xgb_comm_error {
+typedef enum xgb_comm_error {
   XGB_OK = 0,
   XGB_ERR_TRANSMIT_TIMEOUT = -1,
   XGB_ERR_EOT_MISSING = -2
 
-};
+}xgb_comm_err_t;
 
 /*
  * Parameters required for individual read command frame
@@ -82,9 +82,9 @@ enum xgb_comm_error {
 struct data_ind_read_frame {
   uint8_t station_number;
   uint8_t no_of_blocks;
-  xgb_data_size_marking data_size;
-  xgb_device_type device_type;
-  char *p_device_address;
+  xgb_data_size_marking_t data_size;
+  xgb_device_type_t device_type;
+  const char *p_device_address;
 };
 
 /*
@@ -93,9 +93,9 @@ struct data_ind_read_frame {
 struct data_ind_write_frame {
   uint8_t station_number;
   uint8_t no_of_blocks;
-  xgb_data_size_marking data_size;
-  xgb_device_type device_type;
-  char *p_device_address;
+  xgb_data_size_marking_t data_size;
+  xgb_device_type_t device_type;
+  const char *p_device_address;
   uint8_t *p_data_buffer;
 };
 
@@ -104,10 +104,10 @@ struct data_ind_write_frame {
  */
 struct data_cont_read_frame {
   uint8_t station_number;
-  xgb_data_size_marking data_size;
-  xgb_device_type device_type;
+  xgb_data_size_marking_t data_size;
+  xgb_device_type_t device_type;
   uint8_t no_of_data;
-  char *p_device_address;
+  const char *p_device_address;
 };
 
 /*
@@ -115,10 +115,10 @@ struct data_cont_read_frame {
  */
 struct data_cont_write_frame {
   uint8_t station_number;
-  xgb_data_size_marking data_size;
-  xgb_device_type device_type;
+  xgb_data_size_marking_t data_size;
+  xgb_device_type_t device_type;
   uint8_t no_of_data;
-  char *p_device_address;
+  const char *p_device_address;
   uint8_t *p_data_buffer;
 };
 
@@ -220,29 +220,6 @@ static_assert(sizeof(struct cmd_cont_read_frame) <= MAX_FRAME_SIZE,
 static_assert(sizeof(struct cmd_cont_write_frame) <= MAX_FRAME_SIZE,
               "frame struct size exceeded");
 
-// converts marking to amount of bytes
-static inline uint8_t data_marking_to_size(xgb_data_size_marking data_size) {
-  switch (data_size) {
-    case (XGB_DATA_SIZE_BIT): {
-      return 1;
-    }
-    case (XGB_DATA_SIZE_BYTE): {
-      return 1;
-    }
-    case (XGB_DATA_SIZE_WORD): {
-      return 2;
-    }
-    case (XGB_DATA_SIZE_DWORD): {
-      return 4;
-    }
-    case (XGB_DATA_SIZE_LWORD): {
-      return 8;
-    }
-    default: {
-      return 0;
-    }
-  }
-}
 
 typedef union frame {
   uint8_t frame_bytes[MAX_FRAME_SIZE];
@@ -254,13 +231,9 @@ typedef union frame {
   struct cmd_cont_write_frame cont_write_frame;
 } u_frame;
 
-uint8_t xgb_send_individual_read_cmd(const cmd_frame_data *p_frame_data);
-uint8_t xgb_send_inidividual_write_cmd(const cmd_frame_data *p_frame_data);
-uint8_t xgb_send_continuous_read_cmd(const cmd_frame_data *p_frame_data);
-uint8_t xgb_send_continuous_write_cmd(const cmd_frame_data *p_frame_data);
 
-uint8_t xgb_read_single_device(const xgb_device_type type,
-                               const xgb_data_size_marking size_mark,
-                               const char *address);
+xgb_comm_err_t xgb_read_single_device(const xgb_device_type_t type,
+                                      const xgb_data_size_marking_t size_mark,
+                                      const char *address);
 
 #endif /* INC_XGB_COMM_H_ */
