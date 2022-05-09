@@ -160,7 +160,7 @@ void draw_edit_menu(uint8_t active_main_tile)
 
   draw_wide_tile(tile_text[TILE_HEADER], TILE_HEADER, true, HMI_TILE_COLOR);
 
-  for (uint8_t i = TILE_FUNCTION; i < TILE_EXIT; i++)
+  for (uint8_t i = TILE_LEFT_ALLIGN_START; i <= TILE_LEFT_ALLIGN_END; i++)
     {
       draw_wide_tile(tile_text[i], i, false, HMI_TILE_COLOR);
     }
@@ -327,7 +327,7 @@ void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
 void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch)
 {
   // standard switches
-  for (uint8_t i = TILE_FUNCTION; i < TILE_ADDRESS; i++)
+  for (uint8_t i = TILE_STD_SWITCH_START; i <= TILE_STD_SWITCH_END; i++)
     {
       draw_std_switch_txt(p_cursors, i,p_std_switch);
     }

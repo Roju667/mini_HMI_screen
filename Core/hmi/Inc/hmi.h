@@ -34,10 +34,10 @@ typedef enum hmi_state
 
 typedef enum tile_function
 {
-	READ = 0,
-	WRITE_CONT = 1,
-	WRITE_SINGLE = 2
-}tile_function_t;
+  READ = 0,
+  WRITE_CONT = 1,
+  WRITE_SINGLE = 2
+} tile_function_t;
 
 struct tile_data
 {
@@ -62,9 +62,13 @@ enum cursor_tiles
 {
   TILE_HEADER = 0,
   TILE_FUNCTION = 1,
+  TILE_STD_SWITCH_START = TILE_FUNCTION,
+  TILE_LEFT_ALLIGN_START = TILE_FUNCTION,
   TILE_DEVICE = 2,
   TILE_SIZE = 3,
+  TILE_STD_SWITCH_END = TILE_SIZE,
   TILE_ADDRESS = 4,
+  TILE_LEFT_ALLIGN_END = TILE_ADDRESS,
   TILE_EXIT = 5
 };
 
