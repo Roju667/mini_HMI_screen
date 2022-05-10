@@ -204,7 +204,7 @@ static void redraw_horiz_std_switch(buttons_state_t pending_flag)
 {
   draw_erase_std_switch_txt(&edit_menu_cursors, std_switches);
   update_horiz_cursor_pos(pending_flag);
-  draw_std_switch_txt(&edit_menu_cursors, edit_menu_cursors.vert_tile,
+  draw_std_switch_text(&edit_menu_cursors, edit_menu_cursors.vert_tile,
                       std_switches);
   return;
 }

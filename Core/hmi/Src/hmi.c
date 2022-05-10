@@ -21,7 +21,7 @@
 
 #define SWITCH_SCREEN 1U
 
-#define RETURN_FRAME_TIMEOUT 50
+#define RETURN_FRAME_TIMEOUT 50U
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
@@ -33,6 +33,11 @@ static hmi_main_screen_t main_screen_data;
 static void mm_update_tile_cursor_pos(buttons_state_t pending_flag);
 static void mm_change_tile_cursor_pos(buttons_state_t pending_flag);
 static hmi_change_screen_t mm_check_pending_flags(void);
+
+// frame
+static bool wait_for_frame_until_timeout(void);
+static void create_frame_to_display(char *text_buffer,
+                                    const u_frame *p_frame_data, bool timeout);
 
 // main functions
 static void init_read_eeprom(void);
@@ -93,6 +98,32 @@ void hmi_main(void)
           }
         }
     }
+
+  return;
+}
+
+void hmi_read_tile_function(const struct tile_data *frame_send)
+{
+  // read on DMA
+  frame_returned = false;
+  bool timeout_error = false;
+  char msg_to_print[16];
+  bool center_text = false;
+  u_frame *p_frame_received = {0};
+
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)p_frame_received,
+                               MAX_FRAME_SIZE);
+
+  xgb_read_single_device(frame_send->device_type, frame_send->size_mark,
+                         frame_send->address);
+
+  timeout_error = wait_for_frame_until_timeout();
+
+  create_frame_to_display(msg_to_print, p_frame_received, timeout_error);
+
+  draw_small_tile_text(frame_send->tile_number, msg_to_print, center_text);
+
+  return;
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
@@ -200,17 +231,11 @@ static void main_menu_active(void)
 
 static void init_read_eeprom(void) { hmi_state = INIT_TFT; }
 
-// init tft and draw main screen
 static void init_tft(void)
 {
   ILI9341_Init(&hspi1);
   GFX_SetFont(font_8x5);
   hmi_state = INIT_MAIN_MENU;
-  for (uint8_t i = 0; i < 10; i++)
-    {
-      main_screen_data.buttons[i].callback = NULL;
-    }
-
   return;
 }
 
@@ -239,18 +264,10 @@ static void edit_menu_active(void)
   return;
 }
 
-void hmi_read_tile_function(const struct tile_data *p_data)
+static bool wait_for_frame_until_timeout(void)
 {
-  // read on DMA
-  frame_returned = false;
-  bool timeout_error = false;
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)p_data, MAX_FRAME_SIZE);
-
-  // send read command
-  xgb_read_single_device(p_data->device_type, p_data->size_mark, p_data->address);
-
-  // wait for return frame
   uint32_t current_tick = HAL_GetTick();
+  bool timeout_error = false;
   while (false == frame_returned)
     {
       if (HAL_GetTick() - current_tick > RETURN_FRAME_TIMEOUT)
@@ -260,13 +277,19 @@ void hmi_read_tile_function(const struct tile_data *p_data)
         }
     }
 
-  if (true == timeout_error)
+  return timeout_error;
+}
+
+static void create_frame_to_display(char *text_buffer,
+                                    const u_frame *p_frame_data, bool timeout)
+{
+
+  if (timeout == true)
     {
-      draw_small_tile(p_data->tile_number, "TIMEOUT", true);
+      text_buffer = "TIMEOUT";
     }
   else
     {
-      draw_small_tile(p_data->tile_number, "DATA", false);
     }
 
   return;

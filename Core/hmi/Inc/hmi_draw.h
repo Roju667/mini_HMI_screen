@@ -26,8 +26,10 @@ void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color);
 void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color);
 void draw_update_tile_number(char number);
 void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_option_t **p_std_switch);
-void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
+void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
                          uint8_t switch_number,const edit_option_t **p_std_switch);
+void draw_small_tile_text(uint8_t tile_number, const char *text,
+                                 bool center_text);
 void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch);
 
 

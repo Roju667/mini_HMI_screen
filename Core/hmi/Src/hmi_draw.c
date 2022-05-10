@@ -53,15 +53,10 @@
 #define STD_SW_LEFT_LIMIT 150
 #define STD_SW_RIGHT_LIMIT 314
 
-
-
 static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
                                          uint32_t right_border);
 
 static uint32_t ut_get_switch_cursor(const hmi_edit_cursors_t *p_cursors);
-
-static void draw_small_tile_text(uint8_t tile_number, const char *text,
-                                 bool center_text);
 
 /*** DRAW FUNCTIONS **/
 
@@ -108,12 +103,11 @@ void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
   return;
 }
 
-static void draw_small_tile_text(uint8_t tile_number, const char *text,
-                                 bool center_text)
+void draw_small_tile_text(uint8_t tile_number, const char *text,
+                          bool center_text)
 {
   uint8_t column = tile_number / 5;
   uint8_t row = tile_number % 5;
-
   uint32_t x_pos_left_border = (column * OFFSET_X_SECOND_COLUMN) +
                                OFFSET_X_LEFT_BORDER + OFFSET_X_CURSOR_POINTER;
   uint32_t x_pos_right_border = (column * OFFSET_X_SECOND_COLUMN) +
@@ -122,6 +116,7 @@ static void draw_small_tile_text(uint8_t tile_number, const char *text,
 
   uint32_t y_pos = (row * DISTANCE_Y_BETWEEN_TILES) + OFFSET_Y_FIRST_TILE +
                    TEXT_X_OFFSET_SMALL_TILE;
+  uint32_t width = strlen(text) * (FONT_HEIGHT + FONT_SPACE);
 
   if (true == center_text)
     {
@@ -132,6 +127,8 @@ static void draw_small_tile_text(uint8_t tile_number, const char *text,
     {
       x_pos = x_pos_left_border + 1;
     }
+
+  GFX_DrawFillRectangle(x_pos, y_pos, width, FONT_HEIGHT, HMI_BACKGROUND_COLOR);
 
   if (NULL != text)
     {
@@ -245,7 +242,7 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
   GFX_DrawFillRectangle(x_pos, y_pos, FONT_WIDTH, FONT_HEIGHT,
                         HMI_EDIT_MENU_COLOR);
 
-  GFX_DrawChar(x_pos, y_pos, p_cursors->vert_address_num  + '0', HMI_TEXT_COLOR);
+  GFX_DrawChar(x_pos, y_pos, p_cursors->vert_address_num + '0', HMI_TEXT_COLOR);
 
   return;
 }
@@ -317,7 +314,8 @@ void draw_update_tile_number(char number)
   return;
 }
 
-void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_option_t **p_std_switch)
+void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
+                               const edit_option_t **p_std_switch)
 {
   uint32_t std_switch_number = p_cursors->vert_tile;
 
@@ -329,7 +327,7 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_o
       (FONT_WIDTH + FONT_SPACE);
 
   uint32_t x_pos = ut_find_x_to_center_text(
-		  p_std_switch[std_switch_number][switch_cursor].display_text,
+      p_std_switch[std_switch_number][switch_cursor].display_text,
       STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos =
@@ -343,33 +341,35 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_o
   return;
 }
 
-void draw_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
-                         uint8_t switch_number,const edit_option_t **p_std_switch)
+void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
+                          uint8_t switch_number,
+                          const edit_option_t **p_std_switch)
 {
   // select switch cursor depending on tile cursor
   uint32_t switch_cursor = ut_get_switch_cursor(p_cursors);
 
   uint32_t x_pos = ut_find_x_to_center_text(
-		  p_std_switch[switch_number][switch_cursor].display_text, STD_SW_LEFT_LIMIT,
-      STD_SW_RIGHT_LIMIT);
+      p_std_switch[switch_number][switch_cursor].display_text,
+      STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * switch_number) +
                    TEXT_Y_OFFSET_WIDE_TILE;
 
   // select a text from an array of arrays of strings (std_switch)
   GFX_DrawString(x_pos, y_pos,
-		  p_std_switch[switch_number][switch_cursor].display_text,
+                 p_std_switch[switch_number][switch_cursor].display_text,
                  HMI_TEXT_COLOR);
 
   return;
 }
 
-void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch)
+void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,
+                                const edit_option_t **p_std_switch)
 {
   // standard switches
   for (uint8_t i = TILE_STD_SWITCH_START; i <= TILE_STD_SWITCH_END; i++)
     {
-      draw_std_switch_txt(p_cursors, i,p_std_switch);
+      draw_std_switch_text(p_cursors, i, p_std_switch);
     }
 
   // address switch
@@ -382,8 +382,7 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
   GFX_DrawString(x_pos, y_pos, "000000", HMI_TEXT_COLOR);
 
   // tile selection cursor
-  draw_wide_tile(NULL, TILE_HEADER, false,
-                 HMI_HIGHLIGHT_TILE_COLOR);
+  draw_wide_tile(NULL, TILE_HEADER, false, HMI_HIGHLIGHT_TILE_COLOR);
 
   return;
 }
