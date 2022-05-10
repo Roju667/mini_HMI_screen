@@ -53,8 +53,8 @@
 #define STD_SW_LEFT_LIMIT 150
 #define STD_SW_RIGHT_LIMIT 314
 
-static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
-                                         uint32_t right_border);
+static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
+                                      uint32_t right_border);
 
 static uint32_t ut_get_switch_cursor(const hmi_edit_cursors_t *p_cursors);
 
@@ -90,9 +90,8 @@ void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
 
   if (center_text == true)
     {
-      x_pos =
-          ut_find_x_to_center_text(text, OFFSET_X_LEFT_BORDER,
-                                   (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+      x_pos = find_x_to_center_text(text, OFFSET_X_LEFT_BORDER,
+                                    (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
     }
 
   if (NULL != text)
@@ -121,7 +120,7 @@ void draw_small_tile_text(uint8_t tile_number, const char *text,
   if (true == center_text)
     {
       x_pos =
-          ut_find_x_to_center_text(text, x_pos_left_border, x_pos_right_border);
+          find_x_to_center_text(text, x_pos_left_border, x_pos_right_border);
     }
   else
     {
@@ -211,7 +210,7 @@ void draw_edit_menu(uint8_t active_main_tile)
 void draw_arrows_icon(ColorType color)
 {
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
 
   x_pos = x_pos + (8 * (FONT_WIDTH + FONT_SPACE));
 
@@ -231,7 +230,7 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
 {
 
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   // offset for next letter
   x_pos = x_pos + (p_cursors->horiz_address * (FONT_WIDTH + FONT_SPACE));
@@ -253,8 +252,8 @@ void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
 {
 
   uint32_t x_pos =
-      ut_find_x_to_center_text("Confirm - Discard", OFFSET_X_LEFT_BORDER,
-                               (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+      find_x_to_center_text("Confirm - Discard", OFFSET_X_LEFT_BORDER,
+                            (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
   ;
 
   uint32_t x_offset = ((strlen("Confirm - ") * (FONT_WIDTH + FONT_SPACE))) *
@@ -277,7 +276,7 @@ void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
 void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
 {
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   // offset for next letter
   x_pos = x_pos + (p_cursors->horiz_address * (FONT_WIDTH + FONT_SPACE));
@@ -298,8 +297,8 @@ void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
 void draw_update_tile_number(char number)
 {
   uint32_t x_pos =
-      ut_find_x_to_center_text("TILE NUMBER  ", OFFSET_X_LEFT_BORDER,
-                               (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+      find_x_to_center_text("TILE NUMBER  ", OFFSET_X_LEFT_BORDER,
+                            (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
 
   x_pos = x_pos + strlen("TILE NUMBER ") * (FONT_WIDTH + FONT_SPACE);
 
@@ -326,7 +325,7 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
       strlen(p_std_switch[std_switch_number][switch_cursor].display_text) *
       (FONT_WIDTH + FONT_SPACE);
 
-  uint32_t x_pos = ut_find_x_to_center_text(
+  uint32_t x_pos = find_x_to_center_text(
       p_std_switch[std_switch_number][switch_cursor].display_text,
       STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
@@ -348,7 +347,7 @@ void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
   // select switch cursor depending on tile cursor
   uint32_t switch_cursor = ut_get_switch_cursor(p_cursors);
 
-  uint32_t x_pos = ut_find_x_to_center_text(
+  uint32_t x_pos = find_x_to_center_text(
       p_std_switch[switch_number][switch_cursor].display_text,
       STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
@@ -374,7 +373,7 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,
 
   // address switch
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_ADDRESS) +
                    TEXT_Y_OFFSET_WIDE_TILE;
@@ -389,8 +388,8 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,
 
 /*** UTILITY FUNCTIONS **/
 
-static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
-                                         uint32_t right_border)
+static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
+                                      uint32_t right_border)
 {
   uint32_t string_lenght = strlen(text) * (FONT_WIDTH + FONT_SPACE);
   uint32_t tile_width = right_border - left_border;

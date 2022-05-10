@@ -27,9 +27,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00020084  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00010e54  00000000  00000000  000200ad  2**0
+ 12 .debug_info   00010e50  00000000  00000000  000200ad  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000030ee  00000000  00000000  00030f01  2**0
+ 13 .debug_abbrev 000030ee  00000000  00000000  00030efd  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  14 .debug_aranges 00000ca0  00000000  00000000  00033ff0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0000f8d8  00000000  00000000  0004e1e9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    00084437  00000000  00000000  0005dac1  2**0
+ 18 .debug_str    00084434  00000000  00000000  0005dac1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  000e1ef8  2**0
+ 19 .comment      00000053  00000000  00000000  000e1ef5  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000034a0  00000000  00000000  000e1f4c  2**2
+ 20 .debug_frame  000034a0  00000000  00000000  000e1f48  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -3070,14 +3070,13 @@ void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
  8001842:	2b00      	cmp	r3, #0
  8001844:	d006      	beq.n	8001854 <draw_wide_tile+0x5c>
     {
-      x_pos =
-          ut_find_x_to_center_text(text, OFFSET_X_LEFT_BORDER,
+      x_pos = find_x_to_center_text(text, OFFSET_X_LEFT_BORDER,
  8001846:	f240 123d 	movw	r2, #317	; 0x13d
  800184a:	2103      	movs	r1, #3
  800184c:	6878      	ldr	r0, [r7, #4]
- 800184e:	f000 fb13 	bl	8001e78 <ut_find_x_to_center_text>
+ 800184e:	f000 fb13 	bl	8001e78 <find_x_to_center_text>
  8001852:	60f8      	str	r0, [r7, #12]
-                                   (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+                                    (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
     }
 
   if (NULL != text)
@@ -3105,7 +3104,7 @@ void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
 08001874 <draw_small_tile_text>:
 
 void draw_small_tile_text(uint8_t tile_number, const char *text,
-                                 bool center_text)
+                          bool center_text)
 {
  8001874:	b580      	push	{r7, lr}
  8001876:	b08a      	sub	sp, #40	; 0x28
@@ -3131,7 +3130,6 @@ void draw_small_tile_text(uint8_t tile_number, const char *text,
  800189e:	440b      	add	r3, r1
  80018a0:	1ad3      	subs	r3, r2, r3
  80018a2:	76bb      	strb	r3, [r7, #26]
-
   uint32_t x_pos_left_border = (column * OFFSET_X_SECOND_COLUMN) +
  80018a4:	7efa      	ldrb	r2, [r7, #27]
  80018a6:	4613      	mov	r3, r2
@@ -3166,8 +3164,6 @@ void draw_small_tile_text(uint8_t tile_number, const char *text,
  80018d4:	332f      	adds	r3, #47	; 0x2f
  80018d6:	60fb      	str	r3, [r7, #12]
                    TEXT_X_OFFSET_SMALL_TILE;
-
-
   uint32_t width = strlen(text) * (FONT_HEIGHT + FONT_SPACE);
  80018d8:	6838      	ldr	r0, [r7, #0]
  80018da:	f7fe fc37 	bl	800014c <strlen>
@@ -3177,18 +3173,17 @@ void draw_small_tile_text(uint8_t tile_number, const char *text,
  80018e4:	4413      	add	r3, r2
  80018e6:	60bb      	str	r3, [r7, #8]
 
-
   if (true == center_text)
  80018e8:	79bb      	ldrb	r3, [r7, #6]
  80018ea:	2b00      	cmp	r3, #0
  80018ec:	d006      	beq.n	80018fc <draw_small_tile_text+0x88>
     {
       x_pos =
-          ut_find_x_to_center_text(text, x_pos_left_border, x_pos_right_border);
+          find_x_to_center_text(text, x_pos_left_border, x_pos_right_border);
  80018ee:	693a      	ldr	r2, [r7, #16]
  80018f0:	6979      	ldr	r1, [r7, #20]
  80018f2:	6838      	ldr	r0, [r7, #0]
- 80018f4:	f000 fac0 	bl	8001e78 <ut_find_x_to_center_text>
+ 80018f4:	f000 fac0 	bl	8001e78 <find_x_to_center_text>
  80018f8:	61f8      	str	r0, [r7, #28]
  80018fa:	e002      	b.n	8001902 <draw_small_tile_text+0x8e>
     }
@@ -3200,7 +3195,7 @@ void draw_small_tile_text(uint8_t tile_number, const char *text,
  8001900:	61fb      	str	r3, [r7, #28]
     }
 
-  GFX_DrawFillRectangle(x_pos, y_pos, width, FONT_HEIGHT,HMI_BACKGROUND_COLOR);
+  GFX_DrawFillRectangle(x_pos, y_pos, width, FONT_HEIGHT, HMI_BACKGROUND_COLOR);
  8001902:	69f8      	ldr	r0, [r7, #28]
  8001904:	68f9      	ldr	r1, [r7, #12]
  8001906:	68bb      	ldr	r3, [r7, #8]
@@ -3519,11 +3514,11 @@ void draw_arrows_icon(ColorType color)
  8001b1e:	4603      	mov	r3, r0
  8001b20:	80fb      	strh	r3, [r7, #6]
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
  8001b22:	f44f 729d 	mov.w	r2, #314	; 0x13a
  8001b26:	2196      	movs	r1, #150	; 0x96
  8001b28:	481f      	ldr	r0, [pc, #124]	; (8001ba8 <draw_arrows_icon+0x90>)
- 8001b2a:	f000 f9a5 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001b2a:	f000 f9a5 	bl	8001e78 <find_x_to_center_text>
  8001b2e:	60f8      	str	r0, [r7, #12]
 
   x_pos = x_pos + (8 * (FONT_WIDTH + FONT_SPACE));
@@ -3611,11 +3606,11 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
  8001bb2:	6078      	str	r0, [r7, #4]
 
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
  8001bb4:	f44f 729d 	mov.w	r2, #314	; 0x13a
  8001bb8:	2196      	movs	r1, #150	; 0x96
  8001bba:	4814      	ldr	r0, [pc, #80]	; (8001c0c <draw_address_char+0x60>)
- 8001bbc:	f000 f95c 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001bbc:	f000 f95c 	bl	8001e78 <find_x_to_center_text>
  8001bc0:	60f8      	str	r0, [r7, #12]
   ;
   // offset for next letter
@@ -3647,7 +3642,7 @@ void draw_address_char(const hmi_edit_cursors_t *p_cursors)
  8001bea:	f7fe fd47 	bl	800067c <GFX_DrawFillRectangle>
                         HMI_EDIT_MENU_COLOR);
 
-  GFX_DrawChar(x_pos, y_pos, p_cursors->vert_address_num  + '0', HMI_TEXT_COLOR);
+  GFX_DrawChar(x_pos, y_pos, p_cursors->vert_address_num + '0', HMI_TEXT_COLOR);
  8001bee:	68f8      	ldr	r0, [r7, #12]
  8001bf0:	68b9      	ldr	r1, [r7, #8]
  8001bf2:	687b      	ldr	r3, [r7, #4]
@@ -3680,13 +3675,13 @@ void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
  8001c1a:	807b      	strh	r3, [r7, #2]
 
   uint32_t x_pos =
-      ut_find_x_to_center_text("Confirm - Discard", OFFSET_X_LEFT_BORDER,
+      find_x_to_center_text("Confirm - Discard", OFFSET_X_LEFT_BORDER,
  8001c1c:	f240 123d 	movw	r2, #317	; 0x13d
  8001c20:	2103      	movs	r1, #3
  8001c22:	4812      	ldr	r0, [pc, #72]	; (8001c6c <draw_exit_cursor+0x5c>)
- 8001c24:	f000 f928 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001c24:	f000 f928 	bl	8001e78 <find_x_to_center_text>
  8001c28:	6178      	str	r0, [r7, #20]
-                               (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+                            (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
   ;
 
   uint32_t x_offset = ((strlen("Confirm - ") * (FONT_WIDTH + FONT_SPACE))) *
@@ -3751,11 +3746,11 @@ void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color)
  8001c78:	460b      	mov	r3, r1
  8001c7a:	807b      	strh	r3, [r7, #2]
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
  8001c7c:	f44f 729d 	mov.w	r2, #314	; 0x13a
  8001c80:	2196      	movs	r1, #150	; 0x96
  8001c82:	4812      	ldr	r0, [pc, #72]	; (8001ccc <draw_address_cursor+0x5c>)
- 8001c84:	f000 f8f8 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001c84:	f000 f8f8 	bl	8001e78 <find_x_to_center_text>
  8001c88:	60f8      	str	r0, [r7, #12]
   ;
   // offset for next letter
@@ -3817,13 +3812,13 @@ void draw_update_tile_number(char number)
  8001cd6:	4603      	mov	r3, r0
  8001cd8:	71fb      	strb	r3, [r7, #7]
   uint32_t x_pos =
-      ut_find_x_to_center_text("TILE NUMBER  ", OFFSET_X_LEFT_BORDER,
+      find_x_to_center_text("TILE NUMBER  ", OFFSET_X_LEFT_BORDER,
  8001cda:	f240 123d 	movw	r2, #317	; 0x13d
  8001cde:	2103      	movs	r1, #3
  8001ce0:	480e      	ldr	r0, [pc, #56]	; (8001d1c <draw_update_tile_number+0x4c>)
- 8001ce2:	f000 f8c9 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001ce2:	f000 f8c9 	bl	8001e78 <find_x_to_center_text>
  8001ce6:	60f8      	str	r0, [r7, #12]
-                               (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
+                            (ILI9341_TFTWIDTH - OFFSET_X_LEFT_BORDER));
 
   x_pos = x_pos + strlen("TILE NUMBER ") * (FONT_WIDTH + FONT_SPACE);
  8001ce8:	68fb      	ldr	r3, [r7, #12]
@@ -3863,7 +3858,8 @@ void draw_update_tile_number(char number)
 
 08001d20 <draw_erase_std_switch_txt>:
 
-void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_option_t **p_std_switch)
+void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors,
+                               const edit_option_t **p_std_switch)
 {
  8001d20:	b580      	push	{r7, lr}
  8001d22:	b08a      	sub	sp, #40	; 0x28
@@ -3903,8 +3899,8 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_o
  8001d5a:	617b      	str	r3, [r7, #20]
       (FONT_WIDTH + FONT_SPACE);
 
-  uint32_t x_pos = ut_find_x_to_center_text(
-		  p_std_switch[std_switch_number][switch_cursor].display_text,
+  uint32_t x_pos = find_x_to_center_text(
+      p_std_switch[std_switch_number][switch_cursor].display_text,
  8001d5c:	69fb      	ldr	r3, [r7, #28]
  8001d5e:	009b      	lsls	r3, r3, #2
  8001d60:	683a      	ldr	r2, [r7, #0]
@@ -3914,11 +3910,11 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_o
  8001d68:	00db      	lsls	r3, r3, #3
  8001d6a:	4413      	add	r3, r2
  8001d6c:	681b      	ldr	r3, [r3, #0]
-  uint32_t x_pos = ut_find_x_to_center_text(
+  uint32_t x_pos = find_x_to_center_text(
  8001d6e:	f44f 729d 	mov.w	r2, #314	; 0x13a
  8001d72:	2196      	movs	r1, #150	; 0x96
  8001d74:	4618      	mov	r0, r3
- 8001d76:	f000 f87f 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001d76:	f000 f87f 	bl	8001e78 <find_x_to_center_text>
  8001d7a:	6138      	str	r0, [r7, #16]
       STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
@@ -3958,7 +3954,8 @@ void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_o
 08001daa <draw_std_switch_text>:
 
 void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
-                         uint8_t switch_number,const edit_option_t **p_std_switch)
+                          uint8_t switch_number,
+                          const edit_option_t **p_std_switch)
 {
  8001daa:	b580      	push	{r7, lr}
  8001dac:	b088      	sub	sp, #32
@@ -3973,8 +3970,8 @@ void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
  8001dba:	f000 f87c 	bl	8001eb6 <ut_get_switch_cursor>
  8001dbe:	61f8      	str	r0, [r7, #28]
 
-  uint32_t x_pos = ut_find_x_to_center_text(
-		  p_std_switch[switch_number][switch_cursor].display_text, STD_SW_LEFT_LIMIT,
+  uint32_t x_pos = find_x_to_center_text(
+      p_std_switch[switch_number][switch_cursor].display_text,
  8001dc0:	7afb      	ldrb	r3, [r7, #11]
  8001dc2:	009b      	lsls	r3, r3, #2
  8001dc4:	687a      	ldr	r2, [r7, #4]
@@ -3984,13 +3981,13 @@ void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
  8001dcc:	00db      	lsls	r3, r3, #3
  8001dce:	4413      	add	r3, r2
  8001dd0:	681b      	ldr	r3, [r3, #0]
-  uint32_t x_pos = ut_find_x_to_center_text(
+  uint32_t x_pos = find_x_to_center_text(
  8001dd2:	f44f 729d 	mov.w	r2, #314	; 0x13a
  8001dd6:	2196      	movs	r1, #150	; 0x96
  8001dd8:	4618      	mov	r0, r3
- 8001dda:	f000 f84d 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001dda:	f000 f84d 	bl	8001e78 <find_x_to_center_text>
  8001dde:	61b8      	str	r0, [r7, #24]
-      STD_SW_RIGHT_LIMIT);
+      STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
   ;
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * switch_number) +
  8001de0:	7afa      	ldrb	r2, [r7, #11]
@@ -4006,7 +4003,7 @@ void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
   GFX_DrawString(x_pos, y_pos,
  8001dee:	69b8      	ldr	r0, [r7, #24]
  8001df0:	6979      	ldr	r1, [r7, #20]
-		  p_std_switch[switch_number][switch_cursor].display_text,
+                 p_std_switch[switch_number][switch_cursor].display_text,
  8001df2:	7afb      	ldrb	r3, [r7, #11]
  8001df4:	009b      	lsls	r3, r3, #2
  8001df6:	687a      	ldr	r2, [r7, #4]
@@ -4030,7 +4027,8 @@ void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
 
 08001e14 <draw_cursor_initial_values>:
 
-void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch)
+void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,
+                                const edit_option_t **p_std_switch)
 {
  8001e14:	b580      	push	{r7, lr}
  8001e16:	b086      	sub	sp, #24
@@ -4043,7 +4041,7 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
  8001e20:	75fb      	strb	r3, [r7, #23]
  8001e22:	e008      	b.n	8001e36 <draw_cursor_initial_values+0x22>
     {
-      draw_std_switch_text(p_cursors, i,p_std_switch);
+      draw_std_switch_text(p_cursors, i, p_std_switch);
  8001e24:	7dfb      	ldrb	r3, [r7, #23]
  8001e26:	683a      	ldr	r2, [r7, #0]
  8001e28:	4619      	mov	r1, r3
@@ -4060,11 +4058,11 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
 
   // address switch
   uint32_t x_pos =
-      ut_find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
+      find_x_to_center_text("000000", STD_SW_LEFT_LIMIT, STD_SW_RIGHT_LIMIT);
  8001e3c:	f44f 729d 	mov.w	r2, #314	; 0x13a
  8001e40:	2196      	movs	r1, #150	; 0x96
  8001e42:	480c      	ldr	r0, [pc, #48]	; (8001e74 <draw_cursor_initial_values+0x60>)
- 8001e44:	f000 f818 	bl	8001e78 <ut_find_x_to_center_text>
+ 8001e44:	f000 f818 	bl	8001e78 <find_x_to_center_text>
  8001e48:	6138      	str	r0, [r7, #16]
   ;
   uint32_t y_pos = ((GAP_Y_BETWEEN_TILES + WIDE_TILE_HEIGHT) * TILE_ADDRESS) +
@@ -4080,13 +4078,12 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
  8001e58:	f7fe fab4 	bl	80003c4 <GFX_DrawString>
 
   // tile selection cursor
-  draw_wide_tile(NULL, TILE_HEADER, false,
+  draw_wide_tile(NULL, TILE_HEADER, false, HMI_HIGHLIGHT_TILE_COLOR);
  8001e5c:	f44f 4378 	mov.w	r3, #63488	; 0xf800
  8001e60:	2200      	movs	r2, #0
  8001e62:	2100      	movs	r1, #0
  8001e64:	2000      	movs	r0, #0
  8001e66:	f7ff fcc7 	bl	80017f8 <draw_wide_tile>
-                 HMI_HIGHLIGHT_TILE_COLOR);
 
   return;
  8001e6a:	bf00      	nop
@@ -4097,12 +4094,12 @@ void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_o
  8001e72:	bf00      	nop
  8001e74:	080059fc 	.word	0x080059fc
 
-08001e78 <ut_find_x_to_center_text>:
+08001e78 <find_x_to_center_text>:
 
 /*** UTILITY FUNCTIONS **/
 
-static uint32_t ut_find_x_to_center_text(const char *text, uint32_t left_border,
-                                         uint32_t right_border)
+static uint32_t find_x_to_center_text(const char *text, uint32_t left_border,
+                                      uint32_t right_border)
 {
  8001e78:	b580      	push	{r7, lr}
  8001e7a:	b088      	sub	sp, #32
