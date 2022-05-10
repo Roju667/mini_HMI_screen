@@ -50,8 +50,8 @@ static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
 // utility
 static uint8_t data_marking_to_size(xgb_data_size_marking_t data_size);
 
-xgb_comm_err_t xgb_read_single_device(const xgb_device_type_t type,
-                                      const xgb_data_size_marking_t size_mark,
+xgb_comm_err_t xgb_read_single_device(xgb_device_type_t type,
+                                      xgb_data_size_marking_t size_mark,
                                       const char *address)
 {
   cmd_frame_data frame = {0};
@@ -228,7 +228,8 @@ prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data)
 
   temp_frame.ind_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
-  return prep_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, frame);
+  return comm_status;
 }
 
 /*
@@ -239,6 +240,7 @@ static xgb_comm_err_t prep_cont_read_frame(u_frame *frame,
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
+  xgb_comm_err_t comm_status = XGB_OK;
 
   // header
   temp_frame.cont_read_frame.header_enq = XGB_CC_ENQ; // ENQ
@@ -280,7 +282,8 @@ static xgb_comm_err_t prep_cont_read_frame(u_frame *frame,
   temp_frame.cont_read_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
-  return prep_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, frame);
+  return comm_status;
 }
 
 /*
@@ -291,6 +294,7 @@ static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
+  xgb_comm_err_t comm_status = XGB_OK;
 
   // header
   temp_frame.cont_write_frame.header_enq = XGB_CC_ENQ; // ENQ
@@ -346,9 +350,8 @@ static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
   temp_frame.cont_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
-  return prep_frame(&temp_frame, frame);
-
-  return XGB_ERR_EOT_MISSING;
+  comm_status = prep_frame(&temp_frame, frame);
+  return comm_status;
 }
 
 static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
@@ -366,11 +369,11 @@ static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
 
   status = prep_fun_mapper[ID].function(&frame, p_frame_data);
 
-  if(XGB_OK == status)
-  {
-	  uint32_t len = (uint32_t)strlen((char *)frame.frame_bytes);
-	  status = send_frame((uint8_t *)&frame.frame_bytes,len);
-  }
+  if (XGB_OK == status)
+    {
+      uint32_t len = (uint32_t)strlen((char *)frame.frame_bytes);
+      status = send_frame((uint8_t *)&frame.frame_bytes, len);
+    }
 
   return status;
 }

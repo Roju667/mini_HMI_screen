@@ -3,7 +3,7 @@ xgb_comm.c:74:23:send_frame	24	static
 xgb_comm.c:89:23:prep_frame	24	static
 xgb_comm.c:119:23:prep_indivi_read_frame	280	static
 xgb_comm.c:173:1:prep_indivi_write_frame	280	static
-xgb_comm.c:237:23:prep_cont_read_frame	272	static
-xgb_comm.c:289:23:prep_cont_write_frame	280	static
-xgb_comm.c:354:23:send_specific_cmd	280	static
-xgb_comm.c:379:16:data_marking_to_size	16	static
+xgb_comm.c:238:23:prep_cont_read_frame	272	static
+xgb_comm.c:290:23:prep_cont_write_frame	280	static
+xgb_comm.c:355:23:send_specific_cmd	280	static
+xgb_comm.c:380:16:data_marking_to_size	16	static
