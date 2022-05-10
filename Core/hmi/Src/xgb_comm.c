@@ -31,7 +31,7 @@ typedef struct prep_fun_mapper
 extern UART_HandleTypeDef huart1;
 
 // basic
-static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint8_t lenght);
+static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint32_t lenght);
 static xgb_comm_err_t prep_frame(const u_frame *raw_frame,
                                  u_frame *ready_frame);
 
@@ -45,7 +45,8 @@ prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data);
 static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
                                             const cmd_frame_data *p_frame_data);
 // send specific frame
-static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,prep_frame_ID ID);
+static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
+                                        prep_frame_ID ID);
 // utility
 static uint8_t data_marking_to_size(xgb_data_size_marking_t data_size);
 
@@ -62,7 +63,7 @@ xgb_comm_err_t xgb_read_single_device(const xgb_device_type_t type,
   frame.ind_read.p_device_address = address;
   frame.ind_read.station_number = STATION_NUMBER;
 
-  comm_status = send_specific_cmd(&frame,INDIVI_READ);
+  comm_status = send_specific_cmd(&frame, INDIVI_READ);
 
   return comm_status;
 }
@@ -70,7 +71,7 @@ xgb_comm_err_t xgb_read_single_device(const xgb_device_type_t type,
 /*
  * Basic send frame function, uart transmit function
  */
-static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint8_t lenght)
+static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint32_t lenght)
 {
   xgb_comm_err_t comm_status = XGB_OK;
 
@@ -350,29 +351,26 @@ static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
   return XGB_ERR_EOT_MISSING;
 }
 
-
-static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,prep_frame_ID ID)
+static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
+                                        prep_frame_ID ID)
 {
 
-  const static prep_fun_mapper_t prep_fun_mapper[] = {{INDIVI_READ, prep_indivi_read_frame},
-                                  {CONT_READ, prep_cont_read_frame},
-                                  {INDIVI_WRITE, prep_indivi_write_frame},
-                                  {CONT_WRITE, prep_cont_write_frame}};
+  const static prep_fun_mapper_t prep_fun_mapper[] = {
+      {INDIVI_READ, prep_indivi_read_frame},
+      {CONT_READ, prep_cont_read_frame},
+      {INDIVI_WRITE, prep_indivi_write_frame},
+      {CONT_WRITE, prep_cont_write_frame}};
 
   xgb_comm_err_t status = XGB_OK;
   u_frame frame;
 
-  if (XGB_OK != prep_fun_mapper[ID].function(&frame, p_frame_data))
-    {
-      status = XGB_ERR_EOT_MISSING;
-    }else
-    {
-    	  if (XGB_OK !=
-    	      send_frame((uint8_t *)&frame, (uint8_t)strlen((char *)frame.frame_bytes)))
-    	    {
-    	      status = XGB_ERR_TRANSMIT_TIMEOUT;
-    	    }
-    }
+  status = prep_fun_mapper[ID].function(&frame, p_frame_data);
+
+  if(XGB_OK == status)
+  {
+	  uint32_t len = (uint32_t)strlen((char *)frame.frame_bytes);
+	  status = send_frame((uint8_t *)&frame.frame_bytes,len);
+  }
 
   return status;
 }
