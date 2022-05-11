@@ -38,9 +38,8 @@ static void redraw_main_cursor(buttons_state_t pending_flag);
 static hmi_change_screen_t edit_screen_if_button_pressed(void);
 
 static bool wait_for_frame_until_timeout(void);
-static bool is_new_text_neccessary(char *text_in_tile,
-                                   const u_frame *p_frame_data, bool timeout,
-                                   hmi_tile_t *p_tile);
+static bool is_new_text_neccessary(char *text_in_tile, const u_frame *new_frame,
+                                   bool timeout, hmi_tile_t *p_tile);
 static void call_tile_function(uint8_t tile_number);
 
 static void init_read_eeprom(void);
@@ -334,14 +333,13 @@ static bool is_new_val_different(int32_t new_val, int32_t current_val)
   return ((new_val != current_val) || INITIAL_VAL == current_val);
 }
 
-static bool is_new_text_neccessary(char *text_in_tile,
-                                   const u_frame *p_frame_data, bool timeout,
-                                   hmi_tile_t *p_tile)
+static bool is_new_text_neccessary(char *text_in_tile, const u_frame *new_frame,
+                                   bool timeout, hmi_tile_t *p_tile)
 {
 
   // parse value
   char new_text[16] = {0};
-  int32_t new_value = parse_text_from_frame(new_text, p_frame_data, timeout);
+  int32_t new_value = parse_text_from_frame(new_text, new_frame, timeout);
   int32_t current_value = p_tile->value;
   bool draw_new_text = false;
   // check if its different than one before

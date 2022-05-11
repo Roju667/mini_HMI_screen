@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00020084  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0001110c  00000000  00000000  000200ad  2**0
+ 12 .debug_info   0001110b  00000000  00000000  000200ad  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000030f0  00000000  00000000  000311b9  2**0
+ 13 .debug_abbrev 00003108  00000000  00000000  000311b8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000ce0  00000000  00000000  000342b0  2**3
+ 14 .debug_aranges 00000ce0  00000000  00000000  000342c0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00000b98  00000000  00000000  00034f90  2**3
+ 15 .debug_ranges 00000b98  00000000  00000000  00034fa0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00018a32  00000000  00000000  00035b28  2**0
+ 16 .debug_macro  00018a32  00000000  00000000  00035b38  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000fa2e  00000000  00000000  0004e55a  2**0
+ 17 .debug_line   0000fa2e  00000000  00000000  0004e56a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000846c1  00000000  00000000  0005df88  2**0
+ 18 .debug_str    000846cb  00000000  00000000  0005df98  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  000e2649  2**0
+ 19 .comment      00000053  00000000  00000000  000e2663  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000035c8  00000000  00000000  000e269c  2**2
+ 20 .debug_frame  000035c8  00000000  00000000  000e26b8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -4296,9 +4296,8 @@ static bool is_new_val_different(int32_t new_val, int32_t current_val)
 
 08001850 <is_new_text_neccessary>:
 
-static bool is_new_text_neccessary(char *text_in_tile,
-                                   const u_frame *p_frame_data, bool timeout,
-                                   hmi_tile_t *p_tile)
+static bool is_new_text_neccessary(char *text_in_tile, const u_frame *new_frame,
+                                   bool timeout, hmi_tile_t *p_tile)
 {
  8001850:	b580      	push	{r7, lr}
  8001852:	b08c      	sub	sp, #48	; 0x30
@@ -4318,7 +4317,7 @@ static bool is_new_text_neccessary(char *text_in_tile,
  800186a:	601a      	str	r2, [r3, #0]
  800186c:	605a      	str	r2, [r3, #4]
  800186e:	609a      	str	r2, [r3, #8]
-  int32_t new_value = parse_text_from_frame(new_text, p_frame_data, timeout);
+  int32_t new_value = parse_text_from_frame(new_text, new_frame, timeout);
  8001870:	79fa      	ldrb	r2, [r7, #7]
  8001872:	f107 0314 	add.w	r3, r7, #20
  8001876:	68b9      	ldr	r1, [r7, #8]
