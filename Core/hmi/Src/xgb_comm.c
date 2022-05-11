@@ -30,24 +30,22 @@ typedef struct prep_fun_mapper
 
 extern UART_HandleTypeDef huart1;
 
-// basic
 static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint32_t lenght);
 static xgb_comm_err_t prep_frame(const u_frame *raw_frame,
                                  u_frame *ready_frame);
 
-// specific frame prep
-static xgb_comm_err_t
-prep_indivi_read_frame(u_frame *frame, const cmd_frame_data *p_frame_data);
+static xgb_comm_err_t prep_indivi_read_frame(u_frame *frame,
+                                             const cmd_frame_data *params);
 static xgb_comm_err_t prep_cont_read_frame(u_frame *frame,
-                                           const cmd_frame_data *p_frame_data);
-static xgb_comm_err_t
-prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data);
+                                           const cmd_frame_data *params);
+static xgb_comm_err_t prep_indivi_write_frame(u_frame *frame,
+                                              const cmd_frame_data *params);
 static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
-                                            const cmd_frame_data *p_frame_data);
-// send specific frame
+                                            const cmd_frame_data *params);
+
 static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
                                         prep_frame_ID ID);
-// utility
+
 static uint8_t data_marking_to_size(xgb_data_size_marking_t data_size);
 
 xgb_comm_err_t xgb_read_single_device(xgb_device_type_t type,
@@ -68,9 +66,6 @@ xgb_comm_err_t xgb_read_single_device(xgb_device_type_t type,
   return comm_status;
 }
 
-/*
- * Basic send frame function, uart transmit function
- */
 static xgb_comm_err_t send_frame(const uint8_t *p_frame, uint32_t lenght)
 {
   xgb_comm_err_t comm_status = XGB_OK;
@@ -113,23 +108,19 @@ static xgb_comm_err_t prep_frame(const u_frame *raw_frame, u_frame *ready_frame)
   return comm_status;
 }
 
-/*
- * Prepare frame - request of individual read
- */
-static xgb_comm_err_t prep_indivi_read_frame(u_frame *frame,
-                                             const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_indivi_read_frame(u_frame *destination,
+                                             const cmd_frame_data *params)
 {
   u_frame temp_frame = {0};
   xgb_comm_err_t comm_status = XGB_OK;
 
-  // header
   temp_frame.ind_read_frame.header_enq = XGB_CC_ENQ;
 
   // station number
   temp_frame.ind_read_frame.station_number[0] =
-      (p_frame_data->ind_read.station_number / 16) + '0';
+      (params->ind_read.station_number / 16) + '0';
   temp_frame.ind_read_frame.station_number[1] =
-      (p_frame_data->ind_read.station_number % 16) + '0';
+      (params->ind_read.station_number % 16) + '0';
 
   // command
   temp_frame.ind_read_frame.command = 'R';
@@ -140,51 +131,47 @@ static xgb_comm_err_t prep_indivi_read_frame(u_frame *frame,
 
   // no blocks
   temp_frame.ind_read_frame.no_blocks[0] =
-      (p_frame_data->ind_read.no_of_blocks / 16) + '0';
+      (params->ind_read.no_of_blocks / 16) + '0';
   temp_frame.ind_read_frame.no_blocks[1] =
-      (p_frame_data->ind_read.no_of_blocks % 16) + '0';
+      (params->ind_read.no_of_blocks % 16) + '0';
 
   // device lenght %MW <- this is 3 chars and then we add lenght of address
   // %MW100 = 3 + strlen("100") = 6
   temp_frame.ind_read_frame.device_lenght[0] =
-      ((3 + strlen(p_frame_data->ind_read.p_device_address)) / 16) + '0';
+      ((3 + strlen(params->ind_read.p_device_address)) / 16) + '0';
   temp_frame.ind_read_frame.device_lenght[1] =
-      ((3 + strlen(p_frame_data->ind_read.p_device_address)) % 16) + '0';
+      ((3 + strlen(params->ind_read.p_device_address)) % 16) + '0';
 
   // prepare device name
   temp_frame.ind_read_frame.device_name[0] = '%';
   temp_frame.ind_read_frame.device_name[1] =
-      p_frame_data->ind_read.device_type; // device memory group (P,M,L etc.)
-  temp_frame.ind_read_frame.device_name[2] = p_frame_data->ind_read.data_size;
+      params->ind_read.device_type; // device memory group (P,M,L etc.)
+  temp_frame.ind_read_frame.device_name[2] = params->ind_read.data_size;
   strcpy((char *restrict)(&temp_frame.ind_read_frame.device_name[3]),
-         (const char *)p_frame_data->ind_read.p_device_address);
+         (const char *)params->ind_read.p_device_address);
 
   temp_frame.ind_read_frame.tail_eot = XGB_CC_EOT;
 
   // prepare message
-  comm_status = prep_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, destination);
   return comm_status;
 }
 
-/*
- * Prepare frame - request of individual write
- */
-static xgb_comm_err_t
-prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_indivi_write_frame(u_frame *destination,
+                                              const cmd_frame_data *params)
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
   xgb_comm_err_t comm_status = XGB_OK;
   ;
 
-  // header
   temp_frame.ind_write_frame.header_enq = XGB_CC_ENQ;
 
   // station number
   temp_frame.ind_write_frame.station_number[0] =
-      (p_frame_data->ind_write.station_number / 16) + '0';
+      (params->ind_write.station_number / 16) + '0';
   temp_frame.ind_write_frame.station_number[1] =
-      (p_frame_data->ind_write.station_number % 16) + '0';
+      (params->ind_write.station_number % 16) + '0';
 
   // command
   temp_frame.ind_write_frame.command = 'W';
@@ -195,30 +182,30 @@ prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data)
 
   // no blocks
   temp_frame.ind_write_frame.no_blocks[0] =
-      (p_frame_data->ind_write.no_of_blocks / 16) + '0';
+      (params->ind_write.no_of_blocks / 16) + '0';
   temp_frame.ind_write_frame.no_blocks[1] =
-      (p_frame_data->ind_write.no_of_blocks % 16) + '0';
+      (params->ind_write.no_of_blocks % 16) + '0';
 
   // device lenght %MW <- this is 3 chars and then we add lenght of address
   // %MW100 = 3 + strlen("100") = 6
   temp_frame.ind_write_frame.device_lenght[0] =
-      ((3 + strlen(p_frame_data->ind_write.p_device_address)) / 16) + '0';
+      ((3 + strlen(params->ind_write.p_device_address)) / 16) + '0';
   temp_frame.ind_write_frame.device_lenght[1] =
-      ((3 + strlen(p_frame_data->ind_write.p_device_address)) % 16) + '0';
+      ((3 + strlen(params->ind_write.p_device_address)) % 16) + '0';
 
   // prepare device name
   temp_frame.ind_write_frame.device_name[0] = '%';
   temp_frame.ind_write_frame.device_name[1] =
-      p_frame_data->ind_write.device_type; // device memory group (P,M,L etc.)
-  temp_frame.ind_write_frame.device_name[2] = p_frame_data->ind_write.data_size;
+      params->ind_write.device_type; // device memory group (P,M,L etc.)
+  temp_frame.ind_write_frame.device_name[2] = params->ind_write.data_size;
   strcpy((char *restrict)(&temp_frame.ind_read_frame.device_name[3]),
-         (const char *)p_frame_data->ind_write.p_device_address);
+         (const char *)params->ind_write.p_device_address);
 
   // prepare frame data
   uint8_t no_bytes_to_copy =
-      p_frame_data->ind_write.no_of_blocks *
-      (data_marking_to_size(p_frame_data->ind_write.data_size) * 2);
-  memcpy(temp_frame.ind_write_frame.data, p_frame_data->ind_write.p_data_buffer,
+      params->ind_write.no_of_blocks *
+      (data_marking_to_size(params->ind_write.data_size) * 2);
+  memcpy(temp_frame.ind_write_frame.data, params->ind_write.p_data_buffer,
          no_bytes_to_copy);
 
   for (uint8_t i = 0; i < no_bytes_to_copy; i++)
@@ -228,69 +215,61 @@ prep_indivi_write_frame(u_frame *frame, const cmd_frame_data *p_frame_data)
 
   temp_frame.ind_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
-  comm_status = prep_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, destination);
   return comm_status;
 }
 
-/*
- * Prepare frame - request of continuous read
- */
-static xgb_comm_err_t prep_cont_read_frame(u_frame *frame,
-                                           const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_cont_read_frame(u_frame *destination,
+                                           const cmd_frame_data *params)
 {
-  // prepare message - fill union with 0s
   u_frame temp_frame = {0};
   xgb_comm_err_t comm_status = XGB_OK;
 
-  // header
   temp_frame.cont_read_frame.header_enq = XGB_CC_ENQ; // ENQ
 
-  // station number
   temp_frame.cont_read_frame.station_number[0] =
-      (p_frame_data->cont_read.station_number / 16) + '0';
+      (params->cont_read.station_number / 16) + '0';
   temp_frame.cont_read_frame.station_number[1] =
-      (p_frame_data->cont_read.station_number % 16) + '0';
+      (params->cont_read.station_number % 16) + '0';
 
-  // command
   temp_frame.cont_read_frame.command = 'R';
 
-  // command type
   temp_frame.cont_read_frame.command_type[0] = 'S';
   temp_frame.cont_read_frame.command_type[1] = 'B';
 
   // device lenght %MW <- this is 3 chars and then we add lenght of address
   // %MW100 = 3 + strlen("100") = 6
   temp_frame.cont_read_frame.device_lenght[0] =
-      ((3 + strlen(p_frame_data->cont_read.p_device_address)) / 16) + '0';
+      ((3 + strlen(params->cont_read.p_device_address)) / 16) + '0';
   temp_frame.cont_read_frame.device_lenght[1] =
-      ((3 + strlen(p_frame_data->cont_read.p_device_address)) % 16) + '0';
+      ((3 + strlen(params->cont_read.p_device_address)) % 16) + '0';
 
   // prepare device name
   temp_frame.cont_read_frame.device_name[0] = '%';
   temp_frame.cont_read_frame.device_name[1] =
-      p_frame_data->cont_read.device_type; // device memory group (P,M,L etc.)
-  temp_frame.cont_read_frame.device_name[2] = p_frame_data->cont_read.data_size;
+      params->cont_read.device_type; // device memory group (P,M,L etc.)
+  temp_frame.cont_read_frame.device_name[2] = params->cont_read.data_size;
   strcpy((char *restrict)(&temp_frame.cont_read_frame.device_name[3]),
-         (const char *)p_frame_data->cont_read.p_device_address);
+         (const char *)params->cont_read.p_device_address);
 
   // no of data
   temp_frame.cont_read_frame.no_data[0] =
-      (p_frame_data->cont_read.no_of_data / 16) + '0';
+      (params->cont_read.no_of_data / 16) + '0';
   temp_frame.cont_read_frame.no_data[1] =
-      (p_frame_data->cont_read.no_of_data % 16) + '0';
+      (params->cont_read.no_of_data % 16) + '0';
 
   temp_frame.cont_read_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
-  comm_status = prep_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, destination);
   return comm_status;
 }
 
 /*
  * Prepare frame - request of continuous write
  */
-static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
-                                            const cmd_frame_data *p_frame_data)
+static xgb_comm_err_t prep_cont_write_frame(u_frame *destination,
+                                            const cmd_frame_data *params)
 {
   // prepare message - fill union with 0s
   u_frame temp_frame = {0};
@@ -301,9 +280,9 @@ static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
 
   // station number
   temp_frame.cont_write_frame.station_number[0] =
-      (p_frame_data->cont_write.station_number / 16) + '0';
+      (params->cont_write.station_number / 16) + '0';
   temp_frame.cont_write_frame.station_number[1] =
-      (p_frame_data->cont_write.station_number % 16) + '0';
+      (params->cont_write.station_number % 16) + '0';
 
   // command
   temp_frame.cont_write_frame.command = 'W';
@@ -315,32 +294,31 @@ static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
   // device lenght %MW <- this is 3 chars and then we add lenght of address
   // %MW100 = 3 + strlen("100") = 6
   temp_frame.cont_write_frame.device_lenght[0] =
-      ((3 + strlen(p_frame_data->cont_write.p_device_address)) / 16) + '0';
+      ((3 + strlen(params->cont_write.p_device_address)) / 16) + '0';
   temp_frame.cont_write_frame.device_lenght[1] =
-      ((3 + strlen(p_frame_data->cont_write.p_device_address)) % 16) + '0';
+      ((3 + strlen(params->cont_write.p_device_address)) % 16) + '0';
 
   // prepare device name
   temp_frame.cont_write_frame.device_name[0] = '%';
   temp_frame.cont_write_frame.device_name[1] =
-      p_frame_data->cont_write.device_type; // device memory group (P,M,L etc.)
-  temp_frame.cont_write_frame.device_name[2] =
-      p_frame_data->cont_write.data_size;
+      params->cont_write.device_type; // device memory group (P,M,L etc.)
+  temp_frame.cont_write_frame.device_name[2] = params->cont_write.data_size;
   strcpy((char *restrict)(&temp_frame.cont_write_frame.device_name[3]),
-         (const char *)p_frame_data->cont_write.p_device_address);
+         (const char *)params->cont_write.p_device_address);
 
   // no of data
   temp_frame.cont_write_frame.no_data[0] =
-      (p_frame_data->cont_write.no_of_data / 16) + '0';
+      (params->cont_write.no_of_data / 16) + '0';
   temp_frame.cont_write_frame.no_data[1] =
-      (p_frame_data->cont_write.no_of_data % 16) + '0';
+      (params->cont_write.no_of_data % 16) + '0';
 
   // prepare frame data
   uint8_t no_bytes_to_copy =
-      p_frame_data->cont_write.no_of_data *
-      (data_marking_to_size(p_frame_data->cont_write.data_size) * 2);
+      params->cont_write.no_of_data *
+      (data_marking_to_size(params->cont_write.data_size) * 2);
 
-  memcpy(temp_frame.cont_write_frame.data,
-         p_frame_data->cont_write.p_data_buffer, no_bytes_to_copy);
+  memcpy(temp_frame.cont_write_frame.data, params->cont_write.p_data_buffer,
+         no_bytes_to_copy);
 
   for (uint8_t i = 0; i < no_bytes_to_copy; i++)
     {
@@ -350,7 +328,7 @@ static xgb_comm_err_t prep_cont_write_frame(u_frame *frame,
   temp_frame.cont_write_frame.tail_eot = XGB_CC_EOT; // EOT
 
   // trimm message
-  comm_status = prep_frame(&temp_frame, frame);
+  comm_status = prep_frame(&temp_frame, destination);
   return comm_status;
 }
 
@@ -378,7 +356,6 @@ static xgb_comm_err_t send_specific_cmd(const cmd_frame_data *p_frame_data,
   return status;
 }
 
-// converts marking to amount of bytes
 static uint8_t data_marking_to_size(xgb_data_size_marking_t data_size)
 {
   switch (data_size)

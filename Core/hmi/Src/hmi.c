@@ -29,25 +29,21 @@ static volatile hmi_state_t hmi_state;
 static volatile bool frame_returned;
 static hmi_main_screen_t main_screen_data;
 
-// main menu
-static void mm_update_tile_cursor_pos(buttons_state_t pending_flag);
-static void mm_change_tile_cursor_pos(buttons_state_t pending_flag);
-static hmi_change_screen_t mm_check_pending_flags(void);
+static void update_main_cursor_val(buttons_state_t pending_flag);
+static void redraw_main_cursor(buttons_state_t pending_flag);
+static hmi_change_screen_t edit_screen_if_button_pressed(void);
 
-// frame
 static bool wait_for_frame_until_timeout(void);
 static void create_frame_to_display(char *text_buffer,
                                     const u_frame *p_frame_data, bool timeout);
+static void call_tile_function(uint8_t tile_number);
 
-// main functions
 static void init_read_eeprom(void);
 static void init_tft(void);
 static void init_main_menu(void);
 static void main_menu_active(void);
 static void init_edit_menu(void);
 static void edit_menu_active(void);
-
-/*** FUNCTIONS USED OUT OF THIS FILE **/
 
 void hmi_main(void)
 {
@@ -94,7 +90,6 @@ void hmi_main(void)
 
         default:
           {
-            // shouldnt happend
           }
         }
     }
@@ -104,7 +99,6 @@ void hmi_main(void)
 
 void hmi_read_tile_function(const struct tile_data *frame_send)
 {
-  // read on DMA
   frame_returned = false;
   bool timeout_error = false;
   char msg_to_print[16];
@@ -131,51 +125,59 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   frame_returned = true;
 }
 
-/*** MAIN MENU FUNCTIONS **/
-
-// update the cursor pos number in structure
-static void mm_update_tile_cursor_pos(buttons_state_t pending_flag)
+static void update_main_cursor_val(buttons_state_t pending_flag)
 {
-  if (pending_flag == LEFT_FLAG)
+  switch (pending_flag)
     {
-      main_screen_data.active_main_tile =
-          (main_screen_data.active_main_tile + 5) % 10;
-    }
-  else if (pending_flag == RIGHT_FLAG)
-    {
-      main_screen_data.active_main_tile =
-          (main_screen_data.active_main_tile + 5) % 10;
-    }
-  else if (pending_flag == UP_FLAG)
-    {
-      main_screen_data.active_main_tile =
-          (main_screen_data.active_main_tile + 4) % 5 +
-          (5 * (main_screen_data.active_main_tile / 5));
-    }
-  else if (pending_flag == DOWN_FLAG)
-    {
-      main_screen_data.active_main_tile =
-          (main_screen_data.active_main_tile + 1) % 5 +
-          (5 * (main_screen_data.active_main_tile / 5));
+    case (LEFT_FLAG):
+      {
+        main_screen_data.active_main_tile =
+            (main_screen_data.active_main_tile + 5) % 10;
+        break;
+      }
+    case (RIGHT_FLAG):
+      {
+        main_screen_data.active_main_tile =
+            (main_screen_data.active_main_tile + 5) % 10;
+        break;
+      }
+    case (UP_FLAG):
+      {
+        main_screen_data.active_main_tile =
+            (main_screen_data.active_main_tile + 4) % 5 +
+            (5 * (main_screen_data.active_main_tile / 5));
+        break;
+      }
+    case (DOWN_FLAG):
+      {
+        main_screen_data.active_main_tile =
+            (main_screen_data.active_main_tile + 1) % 5 +
+            (5 * (main_screen_data.active_main_tile / 5));
+        break;
+      }
+
+    case (ENTER_FLAG):
+      /* FALLTHROUGH */
+    case (IDLE):
+      /* FALLTHROUGH */
+    default:
+      break;
     }
 
   return;
 }
 
-// change cursor position on screen
-static void mm_change_tile_cursor_pos(buttons_state_t pending_flag)
+static void redraw_main_cursor(buttons_state_t pending_flag)
 {
-  // erase active tile
-  draw_mm_cursor(HMI_BACKGROUND_COLOR, main_screen_data.active_main_tile);
-  mm_update_tile_cursor_pos(pending_flag);
-  // draw new active tile
-  draw_mm_cursor(HMI_CURSOR_COLOR, main_screen_data.active_main_tile);
-  buttons_reset_flag(pending_flag);
+  draw_main_menu_cursor(HMI_BACKGROUND_COLOR,
+                        main_screen_data.active_main_tile);
+  update_main_cursor_val(pending_flag);
+  draw_main_menu_cursor(HMI_CURSOR_COLOR, main_screen_data.active_main_tile);
 
   return;
 }
 
-static hmi_change_screen_t mm_check_pending_flags(void)
+static hmi_change_screen_t edit_screen_if_button_pressed(void)
 {
   buttons_state_t pending_flag = buttons_get_pending_flag();
 
@@ -186,21 +188,26 @@ static hmi_change_screen_t mm_check_pending_flags(void)
       switch (pending_flag)
         {
         case (LEFT_FLAG):
+          /* FALLTHROUGH */
         case (RIGHT_FLAG):
+          /* FALLTHROUGH */
         case (UP_FLAG):
+          /* FALLTHROUGH */
         case (DOWN_FLAG):
-          mm_change_tile_cursor_pos(pending_flag);
+          redraw_main_cursor(pending_flag);
           break;
 
         case (ENTER_FLAG):
           change_screen = OPEN_EDIT_MENU;
           break;
         case (IDLE):
+          /* FALLTHROUGH */
         default:
           break;
         }
     }
 
+  buttons_reset_flag(pending_flag);
   return change_screen;
 }
 
@@ -208,17 +215,14 @@ static void main_menu_active(void)
 {
   while (1)
     {
-      // do every tile callback
+
+      hmi_change_screen_t ret_action = NO_CHANGE;
       for (uint8_t i = 0; i < 10; i++)
         {
-          if (NULL != main_screen_data.buttons[i].callback)
-            {
-              main_screen_data.buttons[i].callback(
-                  &main_screen_data.buttons[i].data);
-            }
+          call_tile_function(i);
+          ret_action = edit_screen_if_button_pressed();
 
-          // check if button was pressed
-          if (OPEN_EDIT_MENU == mm_check_pending_flags())
+          if (OPEN_EDIT_MENU == ret_action)
             {
               hmi_state = INIT_EDIT_MENU;
               return;
@@ -226,8 +230,6 @@ static void main_menu_active(void)
         }
     }
 }
-
-/*** INIT FUNCTIONS **/
 
 static void init_read_eeprom(void) { hmi_state = INIT_TFT; }
 
@@ -278,6 +280,18 @@ static bool wait_for_frame_until_timeout(void)
     }
 
   return timeout_error;
+}
+
+static void call_tile_function(uint8_t tile_number)
+{
+
+  if (NULL != main_screen_data.buttons[tile_number].callback)
+    {
+      main_screen_data.buttons[tile_number].callback(
+          &main_screen_data.buttons[tile_number].data);
+    }
+
+  return;
 }
 
 static void create_frame_to_display(char *text_buffer,

@@ -15,7 +15,7 @@
 void draw_small_tile(uint8_t tile_number, const char *text, bool center_text);
 void draw_wide_tile(const char *text, uint8_t tile_number, bool center_text,
                     ColorType color);
-void draw_mm_cursor(ColorType color, uint8_t active_tile);
+void draw_main_menu_cursor(ColorType color, uint8_t active_tile);
 void draw_main_screen(uint8_t active_tile);
 
 // edit menu draw
@@ -24,13 +24,15 @@ void draw_arrows_icon(ColorType color);
 void draw_address_char(const hmi_edit_cursors_t *p_cursors);
 void draw_exit_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color);
 void draw_address_cursor(const hmi_edit_cursors_t *p_cursors, ColorType color);
-void draw_update_tile_number(char number);
-void draw_erase_std_switch_txt(const hmi_edit_cursors_t *p_cursors, const edit_option_t **p_std_switch);
+void draw_update_header_number(char new_number);
+void draw_erase_std_switch_text(const hmi_edit_cursors_t *p_cursors,
+                                const edit_option_t **p_std_switch_array);
 void draw_std_switch_text(const hmi_edit_cursors_t *p_cursors,
-                         uint8_t switch_number,const edit_option_t **p_std_switch);
+                          uint8_t switch_number,
+                          const edit_option_t **p_std_switch_array);
 void draw_small_tile_text(uint8_t tile_number, const char *text,
-                                 bool center_text);
-void draw_cursor_initial_values(const hmi_edit_cursors_t *p_cursors,const edit_option_t **p_std_switch);
-
+                          bool center_text);
+void draw_cursors_initial_values(const hmi_edit_cursors_t *p_cursors,
+                                 const edit_option_t **p_std_switch_array);
 
 #endif // (INC_HMI_DRAW_H_)
