@@ -498,18 +498,18 @@ static void save_data_to_tile(hmi_main_screen_t *p_main_screen_data)
   uint8_t save_function = edit_menu_cursors.horiz_fun;
 
   /* Copy all the significant data*/
-  p_main_screen_data->buttons[save_tile_number].data.tile_number =
+  p_main_screen_data->tiles[save_tile_number].data.tile_number =
       save_tile_number;
-  p_main_screen_data->buttons[save_tile_number].data.device_type =
+  p_main_screen_data->tiles[save_tile_number].data.device_type =
       device_switch[save_device].frame_letter;
-  p_main_screen_data->buttons[save_tile_number].data.size_mark =
+  p_main_screen_data->tiles[save_tile_number].data.size_mark =
       size_switch[save_size].frame_letter;
-  p_main_screen_data->buttons[save_tile_number].data.function =
+  p_main_screen_data->tiles[save_tile_number].data.function =
       fun_switch[save_function].frame_letter;
-  memcpy(p_main_screen_data->buttons[save_tile_number].data.address,
+  memcpy(p_main_screen_data->tiles[save_tile_number].data.address,
          &(edit_menu_cursors.address), 6);
 
-  p_main_screen_data->buttons[save_tile_number].callback =
+  p_main_screen_data->tiles[save_tile_number].callback =
       get_callback_to_tile(save_function);
 
   return;

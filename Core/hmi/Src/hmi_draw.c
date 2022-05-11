@@ -113,7 +113,7 @@ void draw_small_tile_text(uint8_t tile_number, const char *text,
   GFX_DrawFillRectangle(x_start_draw, y_start_draw, text_width, FONT_HEIGHT,
                         HMI_BACKGROUND_COLOR);
 
-  GFX_DrawString(x_start_draw, y_start_draw, text, HMI_TEXT_COLOR);
+  GFX_DrawString(x_start_draw, y_start_draw, "TIMEOUT", HMI_TEXT_COLOR);
 
   return;
 }

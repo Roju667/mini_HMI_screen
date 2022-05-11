@@ -16,6 +16,7 @@
 "./Core/hmi/Src/hmi.o"
 "./Core/hmi/Src/hmi_draw.o"
 "./Core/hmi/Src/hmi_edit_menu.o"
+"./Core/hmi/Src/hmi_mock.o"
 "./Core/hmi/Src/xgb_comm.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o"

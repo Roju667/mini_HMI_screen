@@ -18,10 +18,14 @@
 #include "hmi.h"
 #include "hmi_draw.h"
 #include "hmi_edit_menu.h"
+#include "hmi_mock.h"
 
 #define SWITCH_SCREEN 1U
 
 #define RETURN_FRAME_TIMEOUT 50U
+
+#define TIMEOUT_VAL (int32_t)0xFFFFFFFF
+#define INITIAL_VAL (int32_t)0xFFFFFFFE
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
@@ -34,8 +38,9 @@ static void redraw_main_cursor(buttons_state_t pending_flag);
 static hmi_change_screen_t edit_screen_if_button_pressed(void);
 
 static bool wait_for_frame_until_timeout(void);
-static void create_frame_to_display(char *text_buffer,
-                                    const u_frame *p_frame_data, bool timeout);
+static bool is_new_text_neccessary(char *text_in_tile,
+                                   const u_frame *p_frame_data, bool timeout,
+                                   hmi_tile_t *p_tile);
 static void call_tile_function(uint8_t tile_number);
 
 static void init_read_eeprom(void);
@@ -97,13 +102,14 @@ void hmi_main(void)
   return;
 }
 
-void hmi_read_tile_function(const struct tile_data *frame_send)
+#if (HMI_MOCK_COMM_READ == 0U)
+void hmi_read_tile_function(const struct frame_data *frame_send)
 {
   frame_returned = false;
   bool timeout_error = false;
   char msg_to_print[16];
-  bool center_text = false;
   u_frame *p_frame_received = {0};
+  hmi_tile_t *p_edited_tile = &main_screen_data.tiles[frame_send->tile_number];
 
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)p_frame_received,
                                MAX_FRAME_SIZE);
@@ -113,12 +119,15 @@ void hmi_read_tile_function(const struct tile_data *frame_send)
 
   timeout_error = wait_for_frame_until_timeout();
 
-  create_frame_to_display(msg_to_print, p_frame_received, timeout_error);
-
-  draw_small_tile_text(frame_send->tile_number, msg_to_print, center_text);
+  if (is_new_text_neccessary(msg_to_print, p_frame_received, timeout_error,
+                             p_edited_tile))
+    {
+      draw_small_tile_text(frame_send->tile_number, msg_to_print, true);
+    }
 
   return;
 }
+#endif /* (HMI_MOCK_COMM_READ == 0U) */
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
@@ -211,6 +220,17 @@ static hmi_change_screen_t edit_screen_if_button_pressed(void)
   return change_screen;
 }
 
+static void write_initial_values_to_tiles(void)
+{
+
+  for (uint8_t i = 0; i < 10; i++)
+    {
+      main_screen_data.tiles[i].value = INITIAL_VAL;
+    }
+
+  return;
+}
+
 static void main_menu_active(void)
 {
   while (1)
@@ -244,6 +264,7 @@ static void init_tft(void)
 static void init_main_menu(void)
 {
   main_screen_data.active_main_tile = 0;
+  write_initial_values_to_tiles();
   draw_main_screen(main_screen_data.active_main_tile);
   hmi_state = MAIN_MENU;
   return;
@@ -285,26 +306,51 @@ static bool wait_for_frame_until_timeout(void)
 static void call_tile_function(uint8_t tile_number)
 {
 
-  if (NULL != main_screen_data.buttons[tile_number].callback)
+  if (NULL != main_screen_data.tiles[tile_number].callback)
     {
-      main_screen_data.buttons[tile_number].callback(
-          &main_screen_data.buttons[tile_number].data);
+      main_screen_data.tiles[tile_number].callback(
+          &main_screen_data.tiles[tile_number].data);
     }
 
   return;
 }
 
-static void create_frame_to_display(char *text_buffer,
-                                    const u_frame *p_frame_data, bool timeout)
+static int32_t parse_text_from_frame(char *new_text,
+                                     const u_frame *p_frame_data, bool timeout)
+{
+  int32_t ret_value;
+
+  if (true == timeout)
+    {
+      strcpy(new_text, "TIMEOUT");
+      ret_value = TIMEOUT_VAL;
+    }
+
+  return ret_value;
+}
+
+static bool is_new_val_different(int32_t new_val, int32_t current_val)
+{
+  return ((new_val != current_val) || INITIAL_VAL == current_val);
+}
+
+static bool is_new_text_neccessary(char *text_in_tile,
+                                   const u_frame *p_frame_data, bool timeout,
+                                   hmi_tile_t *p_tile)
 {
 
-  if (timeout == true)
+  // parse value
+  char new_text[16] = {0};
+  int32_t new_value = parse_text_from_frame(new_text, p_frame_data, timeout);
+  int32_t current_value = p_tile->value;
+  bool draw_new_text = false;
+  // check if its different than one before
+  if (true == is_new_val_different(new_value, current_value))
     {
-      text_buffer = "TIMEOUT";
-    }
-  else
-    {
+      strcpy(text_in_tile, new_text);
+      draw_new_text = true;
     }
 
-  return;
+  p_tile->value = new_value;
+  return draw_new_text;
 }
