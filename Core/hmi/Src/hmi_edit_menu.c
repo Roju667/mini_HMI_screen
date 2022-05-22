@@ -23,6 +23,8 @@
 
 #define NO_OPTIONS_FUNCTION (sizeof(fun_switch))
 
+extern hmi_main_screen_t main_screen_data;
+
 static hmi_edit_cursors_t edit_menu_cursors = {0};
 
 static const edit_option_t fun_switch[] = {{"<READ>", READ},
@@ -48,13 +50,12 @@ static const edit_option_t *std_switches[] = {null_switch, fun_switch,
                                               device_switch, size_switch};
 
 static void init_edit_menu_cursors(void);
-static hmi_change_screen_t
-edit_menu_if_button_pressed(hmi_main_screen_t *p_main_screen_data);
-static void save_data_to_tile(hmi_main_screen_t *p_main_screen_data);
+static hmi_change_screen_t edit_menu_if_button_pressed(void);
+static void save_data_to_tile(void);
 
-void em_open_edit_menu(const hmi_main_screen_t *p_main_screen_data)
+void em_open_edit_menu(void)
 {
-  draw_edit_menu(p_main_screen_data->active_main_tile);
+  draw_edit_menu(main_screen_data.active_main_tile);
   init_edit_menu_cursors();
   draw_cursors_initial_values(&edit_menu_cursors, std_switches);
 
@@ -62,20 +63,20 @@ void em_open_edit_menu(const hmi_main_screen_t *p_main_screen_data)
 }
 
 /* Active screen super loop */
-hmi_change_screen_t em_active_screen(hmi_main_screen_t *p_main_screen_data)
+hmi_change_screen_t em_active_screen(void)
 {
 
   hmi_change_screen_t ret_action = OPEN_MAIN_MENU;
 
   while (1)
     {
-      ret_action = edit_menu_if_button_pressed(p_main_screen_data);
+      ret_action = edit_menu_if_button_pressed();
 
       if (NO_CHANGE != ret_action)
         {
           if (SAVE_DATA_TO_TILE == ret_action)
             {
-              save_data_to_tile(p_main_screen_data);
+              save_data_to_tile();
               ret_action = OPEN_MAIN_MENU;
             }
           break;
@@ -185,21 +186,22 @@ static void redraw_horiz_exit_switch(buttons_state_t pending_flag)
   return;
 }
 
-static void redraw_horiz_header(buttons_state_t pending_flag,
-                                hmi_main_screen_t *p_main_screen_data)
+static void redraw_horiz_header(buttons_state_t pending_flag)
 {
+  uint8_t active_tile = main_screen_data.active_main_tile;
+
   if (RIGHT_FLAG == pending_flag)
     {
-      p_main_screen_data->active_main_tile =
-          (p_main_screen_data->active_main_tile + 1) % 10;
+      active_tile = (active_tile + 1) % 10;
     }
   else if (LEFT_FLAG == pending_flag)
     {
-      p_main_screen_data->active_main_tile =
-          (p_main_screen_data->active_main_tile + 9) % 10;
+      active_tile = (active_tile + 9) % 10;
     }
 
-  draw_update_header_number(p_main_screen_data->active_main_tile + '0');
+  main_screen_data.active_main_tile = active_tile;
+
+  draw_update_header_number(active_tile + '0');
 
   return;
 }
@@ -233,7 +235,7 @@ static void update_vert_cursor_val(buttons_state_t pending_flag)
 
   if (UP_FLAG == pending_flag)
     {
-      if (true == is_edit_mode_active)
+      if (true == is_edit_mode_active())
         {
           shift_vert_cursor_up(&edit_menu_cursors.vert_address_num,
                                NO_ADDRESS_CHARS);
@@ -246,7 +248,7 @@ static void update_vert_cursor_val(buttons_state_t pending_flag)
     }
   else if (DOWN_FLAG == pending_flag)
     {
-      if (true == is_edit_mode_active)
+      if (true == is_edit_mode_active())
         {
           shift_vert_cursor_down(&edit_menu_cursors.vert_address_num,
                                  NO_ADDRESS_CHARS);
@@ -261,13 +263,12 @@ static void update_vert_cursor_val(buttons_state_t pending_flag)
   return;
 }
 
-static void select_horiz_cursor_to_edit(buttons_state_t pending_flag,
-                                        hmi_main_screen_t *p_main_screen_data)
+static void select_horiz_cursor_to_edit(buttons_state_t pending_flag)
 {
   switch (edit_menu_cursors.vert_tile)
     {
     case (TILE_HEADER):
-      redraw_horiz_header(pending_flag, p_main_screen_data);
+      redraw_horiz_header(pending_flag);
       break;
 
     case (TILE_DEVICE):
@@ -423,7 +424,7 @@ static tile_callback_t get_callback_to_tile(tile_function_t tile_function)
     {
     case (READ):
       {
-        ret_ptr = &hmi_read_tile_function;
+        ret_ptr = &mm_read_tile_function;
         break;
       }
     case (WRITE_CONT):
@@ -458,8 +459,7 @@ static void init_edit_menu_cursors(void)
   return;
 }
 
-static hmi_change_screen_t
-edit_menu_if_button_pressed(hmi_main_screen_t *p_main_screen_data)
+static hmi_change_screen_t edit_menu_if_button_pressed(void)
 {
   hmi_change_screen_t ret_action = NO_CHANGE;
   buttons_state_t pending_flag = buttons_get_pending_flag();
@@ -471,7 +471,7 @@ edit_menu_if_button_pressed(hmi_main_screen_t *p_main_screen_data)
         case (LEFT_FLAG):
           /* FALLTHORUGH */
         case (RIGHT_FLAG):
-          select_horiz_cursor_to_edit(pending_flag, p_main_screen_data);
+          select_horiz_cursor_to_edit(pending_flag);
           break;
         case (UP_FLAG):
           /* FALLTHORUGH */
@@ -491,26 +491,25 @@ edit_menu_if_button_pressed(hmi_main_screen_t *p_main_screen_data)
   return ret_action;
 }
 
-static void save_data_to_tile(hmi_main_screen_t *p_main_screen_data)
+static void save_data_to_tile(void)
 {
-  uint8_t save_tile_number = p_main_screen_data->active_main_tile;
+  uint8_t save_tile_number = main_screen_data.active_main_tile;
   uint8_t save_device = edit_menu_cursors.horiz_dev;
   uint8_t save_size = edit_menu_cursors.horiz_size;
   uint8_t save_function = edit_menu_cursors.horiz_fun;
 
   /* Copy all the significant data*/
-  p_main_screen_data->tiles[save_tile_number].data.tile_number =
-      save_tile_number;
-  p_main_screen_data->tiles[save_tile_number].data.device_type =
+  main_screen_data.tiles[save_tile_number].data.tile_number = save_tile_number;
+  main_screen_data.tiles[save_tile_number].data.device_type =
       device_switch[save_device].frame_letter;
-  p_main_screen_data->tiles[save_tile_number].data.size_mark =
+  main_screen_data.tiles[save_tile_number].data.size_mark =
       size_switch[save_size].frame_letter;
-  p_main_screen_data->tiles[save_tile_number].data.function =
+  main_screen_data.tiles[save_tile_number].data.function =
       fun_switch[save_function].frame_letter;
-  memcpy(p_main_screen_data->tiles[save_tile_number].data.address,
+  memcpy(main_screen_data.tiles[save_tile_number].data.address,
          &(edit_menu_cursors.address), 6);
 
-  p_main_screen_data->tiles[save_tile_number].callback =
+  main_screen_data.tiles[save_tile_number].callback =
       get_callback_to_tile(save_function);
 
   return;

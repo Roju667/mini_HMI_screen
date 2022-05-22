@@ -16,8 +16,8 @@
 #define NAK_VAL (int32_t)0xFFFFFFFD
 #define INITIAL_VAL (int32_t)0xFFFFFFFE
 
-void write_initial_values_to_tiles(hmi_main_screen_t *main_screen_data);
-hmi_change_screen_t mm_active_screen(hmi_main_screen_t *main_screen_data);
-void hmi_read_tile_function(const struct frame_data *frame_send);
+void mm_write_initial_values_to_tiles(void);
+hmi_change_screen_t mm_active_screen(void);
+void mm_read_tile_function(const struct frame_data *frame_send);
 
 #endif /* HMI_INC_HMI_MAIN_MENU_H_ */

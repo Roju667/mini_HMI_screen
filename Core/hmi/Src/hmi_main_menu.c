@@ -17,22 +17,20 @@
 #include "xgb_comm.h"
 
 extern UART_HandleTypeDef huart1;
+hmi_main_screen_t main_screen_data;
 static volatile bool frame_returned;
 
 static uint8_t update_main_cursor_val(buttons_state_t pending_flag,
                                       uint8_t active_tile);
-static void redraw_main_cursor(buttons_state_t pending_flag,
-                               hmi_main_screen_t *main_screen_data);
-static hmi_change_screen_t
-edit_screen_if_button_pressed(hmi_main_screen_t *main_screen_data);
+static void redraw_main_cursor(buttons_state_t pending_flag);
+static hmi_change_screen_t edit_screen_if_button_pressed(void);
 
 static bool wait_for_frame_until_timeout(void);
 static bool is_new_text_neccessary(char *text_in_tile, const u_frame *new_frame,
                                    bool timeout, hmi_tile_t *p_tile);
-static void call_tile_function(uint8_t tile_number,
-                               hmi_main_screen_t *main_screen_data);
+static void call_tile_function(uint8_t tile_number);
 
-hmi_change_screen_t mm_active_screen(hmi_main_screen_t *main_screen_data)
+hmi_change_screen_t mm_active_screen(void)
 {
   hmi_change_screen_t ret_action = NO_CHANGE;
 
@@ -40,8 +38,8 @@ hmi_change_screen_t mm_active_screen(hmi_main_screen_t *main_screen_data)
     {
       for (uint8_t i = 0; i < 10; i++)
         {
-          call_tile_function(i, main_screen_data);
-          ret_action = edit_screen_if_button_pressed(main_screen_data);
+          call_tile_function(i);
+          ret_action = edit_screen_if_button_pressed();
 
           if (NO_CHANGE != ret_action)
             {
@@ -51,24 +49,26 @@ hmi_change_screen_t mm_active_screen(hmi_main_screen_t *main_screen_data)
     }
 }
 
-void write_initial_values_to_tiles(hmi_main_screen_t *main_screen_data)
+void mm_write_initial_values_to_tiles(void)
 {
+  main_screen_data.active_main_tile = 0;
 
   for (uint8_t i = 0; i < 10; i++)
     {
-      main_screen_data->tiles[i].value = INITIAL_VAL;
+      main_screen_data.tiles[i].value = INITIAL_VAL;
     }
 
   return;
 }
 
 #if (HMI_MOCK_COMM_READ == 0U)
-void hmi_read_tile_function(const struct frame_data *frame_send)
+void mm_read_tile_function(const struct frame_data *frame_send)
 {
   frame_returned = false;
   bool timeout_error = false;
   char msg_to_print[16];
   u_frame *p_frame_received = {0};
+  hmi_tile_t *p_edited_tile = &main_screen_data.tiles[frame_send->tile_number];
 
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)p_frame_received,
                                MAX_FRAME_SIZE);
@@ -78,7 +78,11 @@ void hmi_read_tile_function(const struct frame_data *frame_send)
 
   timeout_error = wait_for_frame_until_timeout();
 
-  draw_small_tile_text(frame_send->tile_number, msg_to_print, true);
+  if (is_new_text_neccessary(msg_to_print, p_frame_received, timeout_error,
+                             p_edited_tile))
+    {
+      draw_small_tile_text(frame_send->tile_number, msg_to_print, true);
+    }
 
   return;
 }
@@ -126,20 +130,18 @@ static uint8_t update_main_cursor_val(buttons_state_t pending_flag,
   return active_tile;
 }
 
-static void redraw_main_cursor(buttons_state_t pending_flag,
-                               hmi_main_screen_t *main_screen_data)
+static void redraw_main_cursor(buttons_state_t pending_flag)
 {
   draw_main_menu_cursor(HMI_BACKGROUND_COLOR,
-                        main_screen_data->active_main_tile);
-  main_screen_data->active_main_tile =
-      update_main_cursor_val(pending_flag, main_screen_data->active_main_tile);
-  draw_main_menu_cursor(HMI_CURSOR_COLOR, main_screen_data->active_main_tile);
+                        main_screen_data.active_main_tile);
+  main_screen_data.active_main_tile =
+      update_main_cursor_val(pending_flag, main_screen_data.active_main_tile);
+  draw_main_menu_cursor(HMI_CURSOR_COLOR, main_screen_data.active_main_tile);
 
   return;
 }
 
-static hmi_change_screen_t
-edit_screen_if_button_pressed(hmi_main_screen_t *main_screen_data)
+static hmi_change_screen_t edit_screen_if_button_pressed(void)
 {
   buttons_state_t pending_flag = buttons_get_pending_flag();
 
@@ -156,7 +158,7 @@ edit_screen_if_button_pressed(hmi_main_screen_t *main_screen_data)
         case (UP_FLAG):
           /* FALLTHROUGH */
         case (DOWN_FLAG):
-          redraw_main_cursor(pending_flag, main_screen_data);
+          redraw_main_cursor(pending_flag);
           break;
 
         case (ENTER_FLAG):
@@ -189,14 +191,13 @@ static bool wait_for_frame_until_timeout(void)
   return timeout_error;
 }
 
-static void call_tile_function(uint8_t tile_number,
-                               hmi_main_screen_t *main_screen_data)
+static void call_tile_function(uint8_t tile_number)
 {
 
-  if (NULL != main_screen_data->tiles[tile_number].callback)
+  if (NULL != main_screen_data.tiles[tile_number].callback)
     {
-      main_screen_data->tiles[tile_number].callback(
-          &main_screen_data->tiles[tile_number].data);
+      main_screen_data.tiles[tile_number].callback(
+          &main_screen_data.tiles[tile_number].data);
     }
 
   return;

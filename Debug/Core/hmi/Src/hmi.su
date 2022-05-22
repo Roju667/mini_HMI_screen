@@ -1,7 +1,8 @@
-hmi.c:29:6:hmi_main	8	static
-hmi.c:81:13:init_read_eeprom	4	static
-hmi.c:83:13:init_tft	8	static
-hmi.c:91:13:init_main_menu	8	static
+hmi.c:30:6:hmi_main	8	static
+hmi.c:82:13:init_read_eeprom	4	static
+hmi.c:84:13:init_tft	8	static
+hmi.c:92:13:init_main_menu	8	static
 hmi.c:100:13:main_menu_active	8	static
-hmi.c:112:13:init_edit_menu	8	static
-hmi.c:119:13:edit_menu_active	8	static
+hmi.c:110:13:init_edit_menu	8	static
+hmi.c:117:13:edit_menu_active	8	static
+hmi.c:126:13:change_state	16	static

@@ -17,7 +17,8 @@
 
 extern SPI_HandleTypeDef hspi1;
 static volatile hmi_state_t hmi_state;
-static hmi_main_screen_t main_screen_data;
+
+static void change_state(hmi_state_t state);
 
 static void init_read_eeprom(void);
 static void init_tft(void);
@@ -84,44 +85,46 @@ static void init_tft(void)
 {
   ILI9341_Init(&hspi1);
   GFX_SetFont(font_8x5);
-  hmi_state = INIT_MAIN_MENU;
+  change_state(INIT_MAIN_MENU);
   return;
 }
 
 static void init_main_menu(void)
 {
-  main_screen_data.active_main_tile = 0;
-  write_initial_values_to_tiles(&main_screen_data);
-  draw_main_screen(main_screen_data.active_main_tile);
-  hmi_state = MAIN_MENU;
+  mm_write_initial_values_to_tiles();
+  draw_main_screen(0);
+  change_state(MAIN_MENU);
   return;
 }
 
 static void main_menu_active(void)
 {
-  while (1)
+
+  if (OPEN_EDIT_MENU == mm_active_screen())
     {
-      if (OPEN_EDIT_MENU == mm_active_screen(&main_screen_data))
-        {
-          hmi_state = INIT_EDIT_MENU;
-          return;
-        }
+      change_state(INIT_EDIT_MENU);
     }
+  return;
 }
 
 static void init_edit_menu(void)
 {
-  em_open_edit_menu(&main_screen_data);
-  hmi_state = EDIT_MENU;
+  em_open_edit_menu();
+  change_state(EDIT_MENU);
   return;
 }
 
 static void edit_menu_active(void)
 {
-  if (OPEN_MAIN_MENU == em_active_screen(&main_screen_data))
+  if (OPEN_MAIN_MENU == em_active_screen())
     {
-      hmi_state = INIT_MAIN_MENU;
+      change_state(INIT_MAIN_MENU);
     }
+  return;
+}
 
+static void change_state(hmi_state_t state)
+{
+  hmi_state = state;
   return;
 }
