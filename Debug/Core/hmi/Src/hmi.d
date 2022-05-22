@@ -23,10 +23,10 @@ Core/hmi/Src/hmi.o: ../Core/hmi/Src/hmi.c ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/ILI9341.h ../Core/Inc/main.h ../Core/Inc/5buttons.h \
- ../Core/Inc/GFX_COLOR.h ../Core/Inc/fonts.h ../Core/Inc/font_8x5.h \
- ../Core/hmi/Inc/hmi.h ../Core/hmi/Inc/xgb_comm.h \
- ../Core/hmi/Inc/hmi_draw.h ../Core/hmi/Inc/hmi_edit_menu.h \
+ ../Core/Inc/fonts.h ../Core/Inc/font_8x5.h ../Core/hmi/Inc/hmi.h \
+ ../Core/hmi/Inc/xgb_comm.h ../Core/hmi/Inc/hmi_draw.h \
+ ../Core/Inc/ILI9341.h ../Core/Inc/main.h ../Core/Inc/GFX_COLOR.h \
+ ../Core/hmi/Inc/hmi_edit_menu.h ../Core/hmi/Inc/hmi_main_menu.h \
  ../Core/hmi/Inc/hmi_mock.h
 
 ../Core/Inc/main.h:
@@ -79,14 +79,6 @@ Core/hmi/Src/hmi.o: ../Core/hmi/Src/hmi.c ../Core/Inc/main.h \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 
-../Core/Inc/ILI9341.h:
-
-../Core/Inc/main.h:
-
-../Core/Inc/5buttons.h:
-
-../Core/Inc/GFX_COLOR.h:
-
 ../Core/Inc/fonts.h:
 
 ../Core/Inc/font_8x5.h:
@@ -97,6 +89,14 @@ Core/hmi/Src/hmi.o: ../Core/hmi/Src/hmi.c ../Core/Inc/main.h \
 
 ../Core/hmi/Inc/hmi_draw.h:
 
+../Core/Inc/ILI9341.h:
+
+../Core/Inc/main.h:
+
+../Core/Inc/GFX_COLOR.h:
+
 ../Core/hmi/Inc/hmi_edit_menu.h:
+
+../Core/hmi/Inc/hmi_main_menu.h:
 
 ../Core/hmi/Inc/hmi_mock.h:

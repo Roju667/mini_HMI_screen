@@ -101,6 +101,4 @@ typedef struct hmi_screen
 
 void hmi_main(void);
 
-void hmi_read_tile_function(const struct frame_data *p_data);
-
 #endif /* INC_HMI_H_ */

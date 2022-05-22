@@ -1,0 +1,12 @@
+hmi_main_menu.c:35:21:mm_active_screen	24	static
+hmi_main_menu.c:54:6:write_initial_values_to_tiles	24	static
+hmi_main_menu.c:66:6:hmi_read_tile_function	40	static
+hmi_main_menu.c:87:6:HAL_UARTEx_RxEventCallback	16	static
+hmi_main_menu.c:92:16:update_main_cursor_val	16	static
+hmi_main_menu.c:129:13:redraw_main_cursor	16	static
+hmi_main_menu.c:142:1:edit_screen_if_button_pressed	24	static
+hmi_main_menu.c:176:13:wait_for_frame_until_timeout	16	static
+hmi_main_menu.c:192:13:call_tile_function	16	static
+hmi_main_menu.c:205:16:parse_text_from_frame	32	static
+hmi_main_menu.c:227:13:is_new_val_different	16	static
+hmi_main_menu.c:232:13:is_new_text_neccessary	56	static

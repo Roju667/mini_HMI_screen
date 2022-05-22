@@ -12,6 +12,7 @@
 #include "hmi.h"
 #include "hmi_draw.h"
 #include "hmi_edit_menu.h"
+#include "hmi_main_menu.h"
 
 #define CONFIRM 0U
 #define DISCARD 1U

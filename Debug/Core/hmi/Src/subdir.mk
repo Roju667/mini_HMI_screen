@@ -8,6 +8,7 @@ C_SRCS += \
 ../Core/hmi/Src/hmi.c \
 ../Core/hmi/Src/hmi_draw.c \
 ../Core/hmi/Src/hmi_edit_menu.c \
+../Core/hmi/Src/hmi_main_menu.c \
 ../Core/hmi/Src/hmi_mock.c \
 ../Core/hmi/Src/xgb_comm.c 
 
@@ -15,6 +16,7 @@ OBJS += \
 ./Core/hmi/Src/hmi.o \
 ./Core/hmi/Src/hmi_draw.o \
 ./Core/hmi/Src/hmi_edit_menu.o \
+./Core/hmi/Src/hmi_main_menu.o \
 ./Core/hmi/Src/hmi_mock.o \
 ./Core/hmi/Src/xgb_comm.o 
 
@@ -22,6 +24,7 @@ C_DEPS += \
 ./Core/hmi/Src/hmi.d \
 ./Core/hmi/Src/hmi_draw.d \
 ./Core/hmi/Src/hmi_edit_menu.d \
+./Core/hmi/Src/hmi_main_menu.d \
 ./Core/hmi/Src/hmi_mock.d \
 ./Core/hmi/Src/xgb_comm.d 
 
